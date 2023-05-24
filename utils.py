@@ -1,16 +1,19 @@
 from web3 import Web3
 def get_percentage_from_string(s):
-    # Split the string using the '/' character
-    num, denom = s.split('/')
+    if isinstance(s, str):
+            # Split the string using the '/' character
+            num, denom = s.split('/')
 
-    # Convert the substrings to numbers (floats)
-    num = float(num)
-    denom = float(denom)
+            # Convert the substrings to numbers (floats)
+            num = float(num)
+            denom = float(denom)
 
-    # Calculate the percentage
-    percentage = (num / denom) * 100
+            # Calculate the percentage
+            percentage = (num / denom) * 100
 
-    return percentage
+            return percentage
+    else:
+        return 0
 
 def get_block_number_by_timestamp(w3, target_timestamp, lower_bound=0, upper_bound=None):
     if upper_bound is None:

@@ -5,6 +5,7 @@ import requests
 from web3.exceptions import ContractLogicError
 from os.path import join, dirname
 from dotenv import load_dotenv
+from dextrade_chain_data import DexTradeChainData
 
 
 from trade_action import TradeAction
@@ -24,11 +25,15 @@ class DexTradeManager:
     def __init__(
         self,
         wallet_private_key="",
-        provider_url="",
         supported_chains=[],
+        trade_amount_eth=0.06,
+        selected_chain=SelectedChain.ETHEREUM_MAINNET,
         demo_mode=True,
     ):
         self.demo_mode = True
+        chain_data = supported_chains.get(selected_chain.value)
+        short_name = chain_data.short_name.upper()
+        provider_url = os.environ[f'{short_name}_PROVIDER_URL']
         os.environ["PROVIDER"] = provider_url
         self.w3 = Web3(Web3.HTTPProvider(provider_url))
         self.w3.middleware_onion.inject(
@@ -36,7 +41,7 @@ class DexTradeManager:
         )  # Required for some Ethereum networks
         self.supported_chains = supported_chains
 
-        # Initialize Uniswap client and factory contract
+        # Initialize factory contract
         wallet_private_key = os.environ["WALLET_PRIVATE_KEY"]
         self.main_account = self.w3.eth.account.from_key(
             wallet_private_key)
@@ -46,8 +51,9 @@ class DexTradeManager:
             supported_chains=supported_chains,
             wallet_address=wallet_address,
             wallet_private_key=wallet_private_key,
-            w3=self.w3
+            w3=self.w3,
+            trade_amount_eth=trade_amount_eth
         )
-        self.data_manager.set_selected_chain(SelectedChain.ETHEREUM_MAINNET)
+        self.data_manager.set_selected_chain(selected_chain)
         self.token_analysis = TokenAnalysis(self.data_manager)
         self.trading = Trading(self.data_manager, self.token_analysis)

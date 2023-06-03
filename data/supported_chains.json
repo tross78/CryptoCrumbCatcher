@@ -4,6 +4,7 @@
         "full_name": "Ethereum Mainnet",
         "short_name": "eth",
         "subgraph_url": "https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-ethereum",
+        "subgraph_type": "messari",
         "factory_address": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         "native_token_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
     },
@@ -12,6 +13,7 @@
         "full_name": "Arbitrum Mainnet",
         "short_name": "arb",
         "subgraph_url": "https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-arbitrum",
+        "subgraph_type": "messari",
         "factory_address": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         "native_token_address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1"
     },
@@ -20,6 +22,7 @@
         "full_name": "BSC Mainnet",
         "short_name": "bsc",
         "subgraph_url": "https://thegraph.com/hosted-service/subgraph/steegecs/pancake-v3-bsc",
+        "subgraph_type": "messari",
         "factory_address": "",
         "native_token_address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
     }

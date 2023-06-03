@@ -1,0 +1,13 @@
+{
+    "liquidity_usd": 100,
+    "max_created_threshold": 168,
+    "holders_threshold": 20,
+    "top_holder_percentage": 10,
+    "trade_amount_eth": 0.06,
+    "profit_margin": 0.01,
+    "monitor_timeframe": 5,
+    "price_increase_threshold": 1.0025,
+    "price_decrease_threshold": 0.9,
+    "token_rating_threshold": 50,
+    "demo_mode": true
+}

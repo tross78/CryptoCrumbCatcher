@@ -1,0 +1,190 @@
+{
+    "liquidityPools": [
+        {
+            "id": "0x1876a1f77381db86e22beb484234ca73c23f6a43",
+            "fees": [
+                {
+                    "id": "0x0000000c00fe0e1876a1f77381db86e22beb484234ca73c23f6a43",
+                    "feePercentage": "0"
+                },
+                {
+                    "id": "0x0000fe0e1876a1f77381db86e22beb484234ca73c23f6a43",
+                    "feePercentage": "0.3"
+                },
+                {
+                    "id": "0x00ad0000fe0e1876a1f77381db86e22beb484234ca73c23f6a43",
+                    "feePercentage": "0.3"
+                }
+            ],
+            "tick": "129012",
+            "totalLiquidity": "16064532804822869353927",
+            "inputTokens": [
+                {
+                    "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+                    "name": "WETH",
+                    "symbol": "WETH"
+                },
+                {
+                    "id": "0xa15907f3e7fdd0a83ec56f4ac543cb10f4d783eb",
+                    "name": "Kewl Token",
+                    "symbol": "KEWL"
+                }
+            ]
+        },
+        {
+            "id": "0x5bc9415d3a5acb558dd56942ab8b74d1e1a0fb3b",
+            "fees": [
+                {
+                    "id": "0x0000000c00fe0e5bc9415d3a5acb558dd56942ab8b74d1e1a0fb3b",
+                    "feePercentage": "0"
+                },
+                {
+                    "id": "0x0000fe0e5bc9415d3a5acb558dd56942ab8b74d1e1a0fb3b",
+                    "feePercentage": "1"
+                },
+                {
+                    "id": "0x00ad0000fe0e5bc9415d3a5acb558dd56942ab8b74d1e1a0fb3b",
+                    "feePercentage": "1"
+                }
+            ],
+            "tick": "-269243",
+            "totalLiquidity": "106768265066462124362530673",
+            "inputTokens": [
+                {
+                    "id": "0x7ddf25cb4861590578f1fb85fcf1c5afd00a01de",
+                    "name": "Peper",
+                    "symbol": "PEPER"
+                },
+                {
+                    "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+                    "name": "WETH",
+                    "symbol": "WETH"
+                }
+            ]
+        },
+        {
+            "id": "0xbdbd504666b0d80796d5d4a321683a9fbae45c2d",
+            "fees": [
+                {
+                    "id": "0x0000000c00fe0ebdbd504666b0d80796d5d4a321683a9fbae45c2d",
+                    "feePercentage": "0"
+                },
+                {
+                    "id": "0x0000fe0ebdbd504666b0d80796d5d4a321683a9fbae45c2d",
+                    "feePercentage": "1"
+                },
+                {
+                    "id": "0x00ad0000fe0ebdbd504666b0d80796d5d4a321683a9fbae45c2d",
+                    "feePercentage": "1"
+                }
+            ],
+            "tick": "50405",
+            "totalLiquidity": "17294866319441600323",
+            "inputTokens": [
+                {
+                    "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+                    "name": "WETH",
+                    "symbol": "WETH"
+                },
+                {
+                    "id": "0x99f2e02e2a7bb35587baa55680c08febfdfa0497",
+                    "name": "PEPEmoon",
+                    "symbol": "PEPEmoon"
+                }
+            ]
+        },
+        {
+            "id": "0xd4f0c83deec6fd0db181d0b7bf4d4cd8b0be33ac",
+            "fees": [
+                {
+                    "id": "0x0000000c00fe0ed4f0c83deec6fd0db181d0b7bf4d4cd8b0be33ac",
+                    "feePercentage": "0"
+                },
+                {
+                    "id": "0x0000fe0ed4f0c83deec6fd0db181d0b7bf4d4cd8b0be33ac",
+                    "feePercentage": "0.3"
+                },
+                {
+                    "id": "0x00ad0000fe0ed4f0c83deec6fd0db181d0b7bf4d4cd8b0be33ac",
+                    "feePercentage": "0.3"
+                }
+            ],
+            "tick": "33389",
+            "totalLiquidity": "5019349373042331171",
+            "inputTokens": [
+                {
+                    "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+                    "name": "WETH",
+                    "symbol": "WETH"
+                },
+                {
+                    "id": "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79",
+                    "name": "Ghast",
+                    "symbol": "GHA"
+                }
+            ]
+        },
+        {
+            "id": "0xa698e4fef25585753168a868be25ffabe2227393",
+            "fees": [
+                {
+                    "id": "0x0000000c00fe0ea698e4fef25585753168a868be25ffabe2227393",
+                    "feePercentage": "0"
+                },
+                {
+                    "id": "0x0000fe0ea698e4fef25585753168a868be25ffabe2227393",
+                    "feePercentage": "0.3"
+                },
+                {
+                    "id": "0x00ad0000fe0ea698e4fef25585753168a868be25ffabe2227393",
+                    "feePercentage": "0.3"
+                }
+            ],
+            "tick": "-140777",
+            "totalLiquidity": "4109322334904525085671",
+            "inputTokens": [
+                {
+                    "id": "0x6d60d61fc082438b17f32422887db9fca9f12f14",
+                    "name": "SO3",
+                    "symbol": "SO3"
+                },
+                {
+                    "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+                    "name": "WETH",
+                    "symbol": "WETH"
+                }
+            ]
+        },
+        {
+            "id": "0x5d957cead1ff7b9fe35f6477f0e80230eafec1e2",
+            "fees": [
+                {
+                    "id": "0x0000000c00fe0e5d957cead1ff7b9fe35f6477f0e80230eafec1e2",
+                    "feePercentage": "0"
+                },
+                {
+                    "id": "0x0000fe0e5d957cead1ff7b9fe35f6477f0e80230eafec1e2",
+                    "feePercentage": "1"
+                },
+                {
+                    "id": "0x00ad0000fe0e5d957cead1ff7b9fe35f6477f0e80230eafec1e2",
+                    "feePercentage": "1"
+                }
+            ],
+            "tick": "-245717",
+            "totalLiquidity": "750429390894274805365657",
+            "inputTokens": [
+                {
+                    "id": "0x652b9590b7ea4982dab3b37dd147186b33c5c497",
+                    "name": "FOMODUCK",
+                    "symbol": "DUCK"
+                },
+                {
+                    "id": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
+                    "name": "WETH",
+                    "symbol": "WETH"
+                }
+            ]
+        }
+    ]
+}

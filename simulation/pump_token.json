@@ -1,0 +1,17 @@
+[
+    {
+        "token_address": "0xb2498cde54810424a24fdd23579164265a0c14c5",
+        "increase_percentage": 10,
+        "started": 1685795432
+    },
+    {
+        "token_address": "0xd8c77726cf483e5acb7d632610be0c2237fb3fb1",
+        "increase_percentage": 10,
+        "started": 1685795432
+    },
+    {
+        "token_address": "0xeCA66820ed807c096e1Bd7a1A091cD3D3152cC79",
+        "increase_percentage": 10,
+        "started": 1685795432
+    }
+]

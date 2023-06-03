@@ -1,0 +1,71 @@
+{
+    "ethereum_mainnet": {
+        "0xdAC17F958D2ee523a2206206994597C13D831ec7": {
+            "token_name": "Tether",
+            "token_symbol": "USDT",
+            "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+        },
+        "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48": {
+            "token_name": "USD Coin",
+            "token_symbol": "USDC",
+            "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        },
+        "0x6B175474E89094C44Da98b954EedeAC495271d0F": {
+            "token_name": "Dai Stablecoin",
+            "token_symbol": "DAI",
+            "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+        },
+        "0x4Fabb145d64652a948d72533023f6E7A623C7C53": {
+            "token_name": "Binance USD",
+            "token_symbol": "BUSD",
+            "address": "0x4Fabb145d64652a948d72533023f6E7A623C7C53"
+        },
+        "0x8E870D67F660D95d5be530380D0eC0bd388289E1": {
+            "token_name": "Paxos Dollar",
+            "token_symbol": "USDP",
+            "address": "0x8E870D67F660D95d5be530380D0eC0bd388289E1"
+        },
+        "0x0000000000085d4780B73119b644AE5ecd22b376": {
+            "token_name": "TrueUSD",
+            "token_symbol": "TUSD",
+            "address": "0x0000000000085d4780B73119b644AE5ecd22b376"
+        }
+    },
+    "arbitrum_mainnet": {
+        "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9": {
+            "token_name": "Tether",
+            "token_symbol": "USDT",
+            "address": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+        },
+        "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8": {
+            "token_name": "USDC",
+            "token_symbol": "USDC",
+            "address": "0xff970a61a04b1ca14834a43f5de4533ebddb5cc8"
+        },
+        "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1": {
+            "token_name": "DAI",
+            "token_symbol": "DAI",
+            "address": "0xda10009cbd5d07dd0cecc66161fc93d7c9000da1"
+        },
+        "0x4d15a3a2286d883af0aa1b3f21367843fac63e07": {
+            "token_name": "TrueUSD",
+            "token_symbol": "TUSD",
+            "address": "0x4d15a3a2286d883af0aa1b3f21367843fac63e07"
+        },
+        "0x17fc002b466eec40dae837fc4be5c67993ddbd6f": {
+            "token_name": "Frax",
+            "token_symbol": "FRAX",
+            "address": "0x17fc002b466eec40dae837fc4be5c67993ddbd6f"
+        },
+        "0x680447595e8b7b3aa1b43beb9f6098c79ac2ab3f": {
+            "token_name": "Decentralized USD",
+            "token_symbol": "USDD",
+            "address": "0x680447595e8b7b3aa1b43beb9f6098c79ac2ab3f"
+        },
+        "0x9d2f299715d94d8a7e6f5eaa8e654e8c74a988a7": {
+            "token_name": "Frax Share",
+            "token_symbol": "FXS",
+            "address": "0x9d2f299715d94d8a7e6f5eaa8e654e8c74a988a7"
+        }
+    }
+}

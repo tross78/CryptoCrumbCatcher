@@ -7,11 +7,11 @@ from typing import List, Optional, Union
 from eth_typing import Address, ChecksumAddress
 from uniswap import Uniswap
 
-from defi.price_provider import PriceProvider
+from defi.dex_client_wrapper import DexClientWrapper
 from managers.blockchain_manager import BlockchainManager
 from managers.subgraph_manager import SubgraphManager
 from models.graph_structures import Pool
-from simulation.simulated_price_provider import SimulatedPriceProvider
+from simulation.simulated_dex_client_wrapper import SimulatedDexClientWrapper
 
 
 class ProtocolManager:
@@ -22,9 +22,10 @@ class ProtocolManager:
         self.stablecoin_tokens = self.load_stablecoin_data()
         self.subgraph_manager = SubgraphManager(blockchain_manager)
         self.blockchain_manager: BlockchainManager = blockchain_manager
+        self.demo_mode = demo_mode
 
         if demo_mode:
-            self.dex_price_provider = SimulatedPriceProvider(
+            self.dex_client_wrapper = SimulatedDexClientWrapper(
                 Uniswap(
                     address=self.blockchain_manager.get_wallet_address(),
                     private_key=self.blockchain_manager.get_wallet_private_key(),
@@ -33,7 +34,7 @@ class ProtocolManager:
                 self.blockchain_manager,
             )
         else:
-            self.dex_price_provider = PriceProvider(
+            self.dex_client_wrapper = DexClientWrapper(
                 Uniswap(
                     address=self.blockchain_manager.get_wallet_address(),
                     private_key=self.blockchain_manager.get_wallet_private_key(),
@@ -85,14 +86,10 @@ class ProtocolManager:
         with open("data/stablecoins.json", "r") as json_file:
             return json.load(json_file)
 
-    def is_stablecoin(self, token_address):
+    def is_stablecoin(self, token_address: str) -> bool:
         current_chain = self.blockchain_manager.get_current_chain().name
         stablecoin_tokens = self.stablecoin_tokens.setdefault(current_chain, {})
-
-        for stablecoin_address, token_data in stablecoin_tokens.items():
-            if token_address.lower() == stablecoin_address:
-                return True
-        return False
+        return token_address.lower() in stablecoin_tokens
 
     async def get_tokens(
         self,
@@ -101,6 +98,7 @@ class ProtocolManager:
         min_liquidity_usd=1,
         min_volume_usd=5000,
     ):
+        logging.info("Trying to get new tokens here:")
         native_token_address = (
             self.blockchain_manager.get_current_chain().native_token_address
         )
@@ -118,11 +116,6 @@ class ProtocolManager:
 
             new_token_addresses = []
             for pool in pools_with_native_token:
-                # token0 = pool["inputTokens"][0].get("id")
-                # token1 = pool["inputTokens"][1].get("id")
-                # pool_address = self.get_pool_address(
-                #     factory_contract, pool.token0, pool.token1, pool.fee
-                # )
                 pool_address = pool.id
                 token_address = pool.token0.id
                 fee = pool.fee.basis_points
@@ -130,9 +123,9 @@ class ProtocolManager:
                 if token_address.lower() == native_token_address.lower():
                     token_address = pool.token1.id
                 if (
-                    token_address != native_token_address
-                    and token_address != self.is_stablecoin(token_address)
-                    and pool_address != "0x0000000000000000000000000000000000000000"
+                    (token_address != native_token_address)
+                    and (not self.is_stablecoin(token_address))
+                    and (pool_address != "0x0000000000000000000000000000000000000000")
                 ):
                     new_token_addresses.append(
                         {
@@ -149,7 +142,7 @@ class ProtocolManager:
     # Given token_trade_amount for native_token_address,
     # returns the maximum output amount of token token_address
 
-    def get_max_native_for_token(self, token_address, token_trade_amount, fee):
+    async def get_max_native_for_token(self, token_address, token_trade_amount, fee):
         token_in = self.blockchain_manager.web3_instance.to_checksum_address(
             token_address
         )
@@ -162,7 +155,7 @@ class ProtocolManager:
                     amount_in: {token_trade_amount}, fee {fee}"
         )
         try:
-            native_token_amount = self.dex_price_provider.get_price_input(
+            native_token_amount = await self.dex_client_wrapper.get_price_input(
                 token_in, token_out, token_trade_amount, fee
             )
             logging.info(
@@ -178,7 +171,7 @@ class ProtocolManager:
     # Returns the minimum amount of token token_address required to
     # buy token_trade_amount of native_token_address.
 
-    def get_min_token_for_native(self, token_address, token_trade_amount, fee):
+    async def get_min_token_for_native(self, token_address, token_trade_amount, fee):
         token_in = self.blockchain_manager.web3_instance.to_checksum_address(
             token_address
         )
@@ -196,8 +189,8 @@ class ProtocolManager:
             logging.info(f"Error in Uniswap price inputs: {error}")
 
         try:
-            # dex_price_provider
-            native_token_amount = self.dex_price_provider.get_price_output(
+            # dex_client_wrapper
+            native_token_amount = await self.dex_client_wrapper.get_price_output(
                 token_in, token_out, token_trade_amount, fee
             )
             return native_token_amount
@@ -206,3 +199,26 @@ class ProtocolManager:
             # Handle the error or invalid price estimation
             logging.info("Invalid token price estimation. Cannot proceed further.")
             return -1
+
+    def make_trade(self, token_address, native_token_address, trade_amount):
+        token_address = self.blockchain_manager.web3_instance.to_checksum_address(
+            token_address
+        )
+        self.dex_client_wrapper.make_trade(
+            token_address, native_token_address, trade_amount
+        )
+
+    def make_trade_output(self, token_address, native_token_address, trade_amount):
+        token_address = self.blockchain_manager.web3_instance.to_checksum_address(
+            token_address
+        )
+        self.dex_client_wrapper.make_trade_output(
+            token_address, native_token_address, trade_amount
+        )
+
+    def approve(self, token_address, max_approval):
+        token_address = self.blockchain_manager.web3_instance.to_checksum_address(
+            token_address
+        )
+        if not self.demo_mode:
+            self.dex_client_wrapper.approve(token_address, max_approval)

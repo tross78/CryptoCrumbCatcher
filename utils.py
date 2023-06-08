@@ -9,11 +9,14 @@ def has_value_increased(token_amount_start, token_amount_end):
     return token_amount_end < token_amount_start
 
 
-def calculate_estimated_net_token_amount_wei_after_fees(fee, token_amount):
+def calculate_estimated_net_token_amount_wei_after_fees(
+    fee, token_amount, num_transactions
+):
     fee_percentage = fee / 1000000
     slippage_tolerance = Decimal("0.01")
     net_token_amount_wei = Decimal(token_amount) / (
-        Decimal("1") + Decimal(fee_percentage) + slippage_tolerance
+        Decimal("1")
+        + ((Decimal(fee_percentage) + slippage_tolerance) * num_transactions)
     )
     return net_token_amount_wei
 

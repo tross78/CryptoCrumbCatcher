@@ -1,0 +1,43 @@
+{
+  poolsWithToken0: pools(
+    first: 1000
+    orderBy: createdAtTimestamp
+    orderDirection: desc
+    where: { token0: "$token0_address" }
+  ) {
+    id
+    token0 {
+      id
+      symbol
+      name
+    }
+    token1 {
+      id
+      symbol
+      name
+    }
+    feeTier
+    liquidity
+    sqrtPrice
+    tick
+  }
+  poolsWithToken1: pools(
+    first: 1000
+    orderBy: createdAtTimestamp
+    orderDirection: desc
+    where: { token1: "$token1_address" }
+  ) {
+    id
+    token0 {
+      id
+      symbol
+      name
+    }
+    token1 {
+      id
+      symbol
+      name
+    }
+    feeTier
+  }
+}

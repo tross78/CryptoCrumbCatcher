@@ -3,8 +3,8 @@
         "name": "ethereum_mainnet",
         "full_name": "Ethereum Mainnet",
         "short_name": "eth",
-        "subgraph_url": "https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-ethereum",
-        "subgraph_type": "messari",
+        "subgraph_url": "https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3",
+        "subgraph_type": "uniswap_v3_eth",
         "factory_address": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
         "native_token_address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
     },
@@ -25,5 +25,14 @@
         "subgraph_type": "messari",
         "factory_address": "",
         "native_token_address": "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c"
+    },
+    {
+        "name": "goerli_testnet",
+        "full_name": "Goerli testnet",
+        "short_name": "goerli",
+        "subgraph_url": "https://api.thegraph.com/subgraphs/name/liqwiz/uniswap-v3-goerli",
+        "subgraph_type": "uniswap_v3_goerli",
+        "factory_address": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+        "native_token_address": "0xb4fbf271143f4fbf7b91a5ded31805e42b2208d6"
     }
 ]

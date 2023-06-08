@@ -100,3 +100,18 @@ class BlockchainManager:
             abi=self.load_dex_contract(),
         )
         return factory_contract
+
+    def calculate_gas_cost_wei(self, num_transactions=2):
+        gas_limit_per_transaction = self.gas_limit_per_transaction
+        gas_price_gwei = self.web3_instance.eth.gas_price
+        gas_cost_per_transaction_wei = gas_price_gwei * gas_limit_per_transaction
+        total_gas_fees_wei = gas_cost_per_transaction_wei * num_transactions
+        return total_gas_fees_wei
+
+    def calculate_gas_cost_eth(self, num_transactions=2):
+        gas_limit_per_transaction = self.gas_limit_per_transaction
+        gas_price_gwei = self.web3_instance.eth.gas_price
+        gas_cost_per_transaction_wei = gas_price_gwei * gas_limit_per_transaction
+        total_gas_fees_wei = gas_cost_per_transaction_wei * num_transactions
+        total_gas_fees_eth = self.web3_instance.from_wei(total_gas_fees_wei, 'ether')
+        return total_gas_fees_eth

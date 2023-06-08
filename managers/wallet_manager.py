@@ -27,7 +27,7 @@ class WalletManager:
         self.demo_mode = demo_mode
         self.demo_balances = self.load_demo_balances(reset_userdata_on_load)
 
-    def get_tokens(self):
+    def get_demo_mode_tokens(self):
         current_chain_name = self.blockchain_manager.get_current_chain().name
         return self.demo_balances[current_chain_name]["tokens"]
 
@@ -38,12 +38,6 @@ class WalletManager:
             balance = self.demo_balances[current_chain_name]["tokens"].get(
                 token_address.lower(), 0
             )
-
-            balance_in_eth = Web3.from_wei(int(balance), "ether")
-
-            # logging.info(
-            #     f"current_chain_name: {current_chain_name} token_address: {token_address} balance_in_wei: {balance} balance_in_eth: {balance_in_eth}"
-            # )
             return balance
         else:
             balance = self.blockchain_manager.get_token_balance(
@@ -69,6 +63,10 @@ class WalletManager:
             self.demo_balances[current_chain_name]["tokens"][
                 token_address.lower()
             ] = balance
+            if balance == 0:
+                del self.demo_balances[current_chain_name]["tokens"][
+                    token_address.lower()
+                ]
             self.save_demo_balances(self.demo_balances)
         else:
             raise Exception("Can't manually set balance in non-demo mode")

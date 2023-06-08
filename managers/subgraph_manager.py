@@ -1,6 +1,8 @@
 import json
 import logging
+import os.path
 import time
+from string import Template
 from typing import List
 
 import requests
@@ -17,100 +19,20 @@ class SubgraphManager:
         self.blockchain_manager = blockchain_manager
         self.subgraph_parsers = {
             "messari": self.parse_messari,
-            "uniswap_v3": self.parse_uniswap_v3,
+            "uniswap_v3_eth": self.parse_uniswap_v3,
+            "uniswap_v3_goerli": self.parse_uniswap_v3,
             # Add more subgraph types and their corresponding parsing methods
         }
-        #                        createdTimestamp_gte: "{past_time}"
-        self.query_templates = {
-            "messari": """
-                {{
-                    liquidityPools(
-                        first: 1000
-                        orderBy: createdTimestamp
-                        orderDirection: desc
-                        where: {{
-                        inputTokens_: {{id_contains: "{native_token_address}"}}
-                        totalValueLockedUSD_gt: {min_liquidity_usd}
-                        totalValueLockedUSD_lt: {max_liquidity_usd}
-                        cumulativeVolumeUSD_gt: {min_volume_usd}
-                        }}
-                    ) {{
-                        id
-                        fees {{
-                            id,
-                            feePercentage
-                        }}
-                        tick
-                        totalLiquidity
-                        inputTokens {{
-                            id
-                            name,
-                            symbol
-                        }}
-                    }}
-                }}
-            """,
-            "uniswap_v3": """
-                {{
-            poolsWithToken0: pools(
-                first: 1000,
-                orderBy: createdAtTimestamp,
-                orderDirection: desc,
-                where: {{
-                token0: "{native_token_address}"
-                createdTimestamp_gte: "{past_time}"
-                totalValueLockedUSD_gt: {min_liquidity_usd}
-                cumulativeVolumeUSD_gt: {min_volume_usd}
-                }}
-            ) {{
-                id
-                token0 {{
-                id
-                symbol
-                name
-                }}
-                token1 {{
-                id
-                symbol
-                name
-                }}
-                feeTier
-                liquidity
-                sqrtPrice
-                tick
-            }}
 
-            poolsWithToken1: pools(
-                first: 1000,
-                orderBy: createdAtTimestamp,
-                orderDirection: desc,
-                where: {{
-                token1: "{native_token_address}",
-                createdTimestamp_gte: "{past_time}"
-                totalValueLockedUSD_gt: {min_liquidity_usd}
-                cumulativeVolumeUSD_gt: {min_volume_usd}
-                }}
-            ) {{
-                id
-                token0 {{
-                id
-                symbol
-                name
-                }}
-                token1 {{
-                id
-                symbol
-                name
-                }}
-                feeTier
-                liquidity
-                sqrtPrice
-                tick
-            }}
-            }}
-            """
-            # Add more subgraph types and their corresponding graph templates
-        }
+    def read_graphql_file(self, filename):
+        with open(filename, "r") as file:
+            return file.read()
+
+    def convert_query_to_json(self, query):
+        query_lines = query.strip().split("\n")
+        query_lines = [line.strip() for line in query_lines]
+        query_json = json.dumps(" ".join(query_lines))
+        return query_json
 
     def _send_query(self, query):
         url = self.blockchain_manager.get_current_chain().graph_url
@@ -159,8 +81,29 @@ class SubgraphManager:
 
     def parse_uniswap_v3(self, response_data):
         # Parsing logic for Uniswap V3 subgraph
-        parsed_data = []
-        return parsed_data
+
+        # Merge poolsWithToken0 and poolsWithToken1
+        pools_data = response_data["poolsWithToken0"] + response_data["poolsWithToken1"]
+
+        pools: List[Pool] = []  # Empty list to hold Pool objects
+
+        # Iterating through each pool data dictionary
+        for pool_data in pools_data:
+            fee = Fee("1", int(float(pool_data["feeTier"])))
+            token0 = Token(
+                pool_data["token0"]["id"],
+                pool_data["token0"]["symbol"],
+                pool_data["token0"]["name"],
+            )
+            token1 = Token(
+                pool_data["token1"]["id"],
+                pool_data["token0"]["symbol"],
+                pool_data["token0"]["name"],
+            )
+            # Creating Pool object and adding to the list
+            pool = Pool(pool_data["id"], token0, token1, fee)
+            pools.append(pool)
+        return pools
 
     def to_dict(self, obj):
         if isinstance(obj, list):
@@ -197,28 +140,32 @@ class SubgraphManager:
             # Creating Pool object and adding to the list
             pool = Pool(pool_data["id"], tokens[0], tokens[1], fee)
             pools.append(pool)
-            # for pool in pools:
-            #     pool_dict = self.to_dict(pool)
-            #     print(
-            #         pool_dict
-            #     )  # or log to a file, or however you want to log this data
         return pools
-
-    def get_query_template(self, subgraph_type):
-        return self.query_templates.get(subgraph_type)
 
     def get_pools_with_native_token(self, past_time, min_liquidity_usd, min_volume_usd):
         max_liquidity_usd = 1000000
 
         subgraph_type = self.blockchain_manager.get_current_chain().graph_type
-        query_template = self.get_query_template(subgraph_type)
+        # query_template = self.get_query_template(subgraph_type)
 
         native_token_address = (
-            self.blockchain_manager.get_current_chain().native_token_address
+            self.blockchain_manager.get_current_chain().native_token_address.lower()
         )
 
-        query = query_template.format(
+        if os.path.isfile(f"queries/{subgraph_type}.graphql"):
+            query_template = self.read_graphql_file(f"queries/{subgraph_type}.graphql")
+        else:
+            logging.error(
+                f"No query template defined for subgraph type: {subgraph_type}"
+            )
+            return []
+
+        query_template = Template(query_template)
+
+        query = query_template.substitute(
             native_token_address=native_token_address,
+            token0_address=native_token_address,
+            token1_address=native_token_address,
             past_time=past_time,
             min_liquidity_usd=min_liquidity_usd,
             max_liquidity_usd=max_liquidity_usd,

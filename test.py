@@ -2,6 +2,7 @@
 # Write Python 3 code in this online editor and run it.
 from decimal import Decimal
 
+from defi.protocol_manager import ProtocolManager
 from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
 from models.chain_constants import SelectedChain
@@ -38,7 +39,17 @@ print(f"Selected chain: {user_selected_chain.value}")
 
 blockchain_manager = BlockchainManager(user_selected_chain)
 data_manager = DataManagement()
+protocol_manager = ProtocolManager(blockchain_manager, False)
 
-test_class = TestClass(data_manager, blockchain_manager)
+test_class = TestClass(data_manager, blockchain_manager, protocol_manager)
 
-print(test_class.calculate_roi_multiplier(3000))
+# test_class.protocol_manager.approve(
+#     test_class.blockchain_manager.current_native_token_address, 100000000000000000
+# )
+
+# Buy 1 DAI using GETH
+test_class.protocol_manager.make_trade(
+    test_class.blockchain_manager.current_native_token_address,  # GETH
+    "0x5777d92f208679DB4b9778590Fa3CAB3aC9e2168",  # DAI
+    10000000000000000,  # 0.01 ETH
+)

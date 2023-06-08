@@ -6,8 +6,8 @@
     "trade_amount_eth": 0.06,
     "profit_margin": 0.01,
     "monitor_timeframe": 5,
-    "price_increase_threshold": 1.0025,
+    "price_increase_threshold": 1.01,
     "price_decrease_threshold": 0.9,
     "token_rating_threshold": 50,
-    "demo_mode": true
+    "demo_mode": false
 }

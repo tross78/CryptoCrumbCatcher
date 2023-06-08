@@ -1,17 +1,1 @@
-[
-    {
-        "token_address": "0xb2498cde54810424a24fdd23579164265a0c14c5",
-        "increase_percentage": 10,
-        "started": 1685795432
-    },
-    {
-        "token_address": "0xd8c77726cf483e5acb7d632610be0c2237fb3fb1",
-        "increase_percentage": 10,
-        "started": 1685795432
-    },
-    {
-        "token_address": "0xeCA66820ed807c096e1Bd7a1A091cD3D3152cC79",
-        "increase_percentage": 10,
-        "started": 1685795432
-    }
-]
+[{"token_address": "0xb2498cde54810424a24fdd23579164265a0c14c5", "increase_percentage": 1, "pumped_at": 1686101978.041874, "pump_started": true, "price_diff_percent": 5.104502018292745, "initial_price": 200905494550674, "current_price": 15998736656550}, {"token_address": "0xd8c77726cf483e5acb7d632610be0c2237fb3fb1", "increase_percentage": 1, "pumped_at": 1686101975.40475, "pump_started": true, "price_diff_percent": 5.105136533578237, "initial_price": 270947788345942048975271697, "current_price": 18788759062157890378792960}, {"token_address": "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79", "increase_percentage": 1, "pumped_at": 1686101741.463106, "pump_started": true, "price_diff_percent": 6.9482646703720095, "initial_price": 1686562983415825979, "current_price": 116644957396370656}]

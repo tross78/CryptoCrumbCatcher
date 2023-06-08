@@ -1,6 +1,8 @@
 import logging
 from decimal import Decimal
 
+from attr import NOTHING
+
 from defi.protocol_manager import ProtocolManager
 from managers.blockchain_manager import BlockchainManager
 from managers.wallet_manager import WalletManager
@@ -24,48 +26,44 @@ class TradeExecutor:
         self.token_monitor = token_monitor
         self.demo_mode = demo_mode
 
-    def trade_token(
+    async def handle_trade(
         self,
         factory_address,
         token_address,
         pool_address,
         fee,
         native_token_address,
-        trade_amount,
+        trade_amount_wei,
         initial_token_amount,
-        current_token_price,
+        current_token_amount,
         action,
     ):
-        if self.demo_mode:
-            self.trade_token_demo(
-                factory_address,
-                token_address,
-                pool_address,
-                native_token_address,
-                fee,
-                trade_amount,
-                initial_token_amount,
-                current_token_price,
-                action,
-            )
-        else:
-            # Trade for real
-            return
+        await self.trade_token(
+            factory_address,
+            token_address,
+            pool_address,
+            native_token_address,
+            fee,
+            trade_amount_wei,
+            initial_token_amount,
+            current_token_amount,
+            action,
+        )
 
-    def trade_token_demo(
+    async def trade_token(
         self,
         factory_address,
         token_address,
         pool_address,
         native_token_address,
         fee,
-        trade_amount,
+        trade_amount_wei,
         initial_token_amount,
-        current_token_price,
+        current_token_amount,
         action,
     ):
         try:
-            gas_fee = self.calculate_gas_fee()
+            gas_fee = self.blockchain_manager.calculate_gas_cost_wei(1)
             token_balance = self.wallet_manager.get_token_balance(
                 token_address
             )  # balance for token in wallet
@@ -73,15 +71,14 @@ class TradeExecutor:
             if action == TradeAction.BUY:
                 # amount of token for eth
 
-                token_amount = self.protocol_manager.get_min_token_for_native(
-                    token_address, trade_amount, fee
+                token_amount = await self.protocol_manager.get_min_token_for_native(
+                    token_address, trade_amount_wei, fee
                 )
             else:
-                # amount of eth for token
-
-                token_amount = self.protocol_manager.get_max_native_for_token(
+                token_amount = await self.protocol_manager.get_max_native_for_token(
                     token_address, token_balance, fee
                 )
+
             # Check if token amount is negative or invalid
             if token_amount < 0:
                 # Handle the error or invalid token amount
@@ -89,24 +86,25 @@ class TradeExecutor:
                 return  # or raise an exception, return an error code, or take appropriate action
 
             if action == TradeAction.BUY:
-                self.buy_token_demo(token_address, trade_amount, token_amount, gas_fee)
+                self.buy_token(token_address, trade_amount_wei, token_amount, gas_fee)
             elif action == TradeAction.SELL:
-                self.sell_token_demo(
-                    token_address, fee, trade_amount, token_amount, gas_fee
+                self.sell_token(
+                    token_address, fee, trade_amount_wei, token_amount, gas_fee
                 )
             else:
                 raise ValueError(
                     "Invalid action. Use TradeAction.BUY or TradeAction.SELL."
                 )
 
-            self.token_monitor.add_monitored_token(
+            await self.token_monitor.add_monitored_token(
                 factory_address,
                 token_address,
                 pool_address,
                 native_token_address,
-                trade_amount,
                 fee,
                 initial_token_amount,
+                current_token_amount,
+                trade_amount_wei,
             )
         except ValueError as error_message:
             logging.error(
@@ -121,103 +119,73 @@ class TradeExecutor:
                 exc_info=True,
             )
 
-    def calculate_gas_fee(self):
-        average_gas_price = self.blockchain_manager.web3_instance.eth.gas_price
-        estimated_gas_limit = 150000
-        gas_fee = average_gas_price * estimated_gas_limit
-        return gas_fee
-
-    def buy_token_demo(self, token_address, trade_amount, token_amount, gas_fee):
+    def buy_token(self, token_address, trade_amount, token_amount, gas_fee):
         logging.info(
             f"Buying token: {token_address}, trade_amount: {trade_amount}, token_amount: {token_amount}"
         )
+        if self.demo_mode:
+            slippage_tolerance = 0.01
 
-        # trade_amount = amount in token; eg. 0.06 ETH
-        # token_amount = amount in eth eg. 3051674047610127360 PEPE
+            # Convert token amount to DAI (or the token's native unit)
+            # token_decimals = 18  # Assuming DAI has 18 decimals
+            # token_amount_dai = token_amount / 10**token_decimals
 
-        slippage_tolerance = 0.01
+            # Apply slippage tolerance and convert back to Wei
+            net_token_amount = int(token_amount * (1 - slippage_tolerance))
 
-        # Convert token amount to DAI (or the token's native unit)
-        token_decimals = 18  # Assuming DAI has 18 decimals
-        token_amount_dai = token_amount / 10**token_decimals
+            # Calculate new balances after transaction
+            new_eth_balance = (
+                self.wallet_manager.get_native_token_balance() - trade_amount - gas_fee
+            )
+            new_token_balance = (
+                self.wallet_manager.get_token_balance(token_address.lower())
+                + net_token_amount
+            )
 
-        # Apply slippage tolerance and convert back to Wei
-        net_token_amount_dai = token_amount_dai * (1 - slippage_tolerance)
-        net_token_amount_wei = int(net_token_amount_dai * 10**token_decimals)
+            # Set new balances
+            self.wallet_manager.set_native_token_balance(new_eth_balance)
+            self.wallet_manager.set_token_balance(token_address, new_token_balance)
+        else:
+            self.protocol_manager.make_trade(
+                self.blockchain_manager.current_native_token_address,
+                token_address,
+                trade_amount,
+            )
 
-        # Calculate new balances after transaction
-        new_eth_balance = (
-            self.wallet_manager.get_native_token_balance() - trade_amount - gas_fee
-        )
-        new_token_balance = (
-            self.wallet_manager.get_token_balance(token_address.lower())
-            + net_token_amount_wei
-        )
-
-        # Set new balances
-        self.wallet_manager.set_native_token_balance(new_eth_balance)
-        self.wallet_manager.set_token_balance(token_address, new_token_balance)
-
-    # def sell_token_demo(self, token_address, fee, trade_amount, token_amount, gas_fee):
-    #     logging.info(
-    #         f"Selling token: {token_address}, trade_amount: {trade_amount}, token_amount: {token_amount}"
-    #     )
-
-    #     net_token_amount_wei = calculate_estimated_net_token_amount_wei_after_fees(
-    #         fee, token_amount
-    #     )
-    #     logging.info(f"Net token amount after fees: {net_token_amount_wei:.0f}")
-
-    #     # Calculate new balances after transaction
-    #     current_eth_balance = self.wallet_manager.get_native_token_balance()
-    #     logging.info(f"Current ETH balance: {current_eth_balance:.0f}")
-
-    #     new_eth_balance = current_eth_balance + net_token_amount_wei - gas_fee
-    #     logging.info(f"New ETH balance after transaction: {new_eth_balance}")
-
-    #     current_token_balance = self.wallet_manager.get_token_balance(
-    #         token_address.lower()
-    #     )
-    #     logging.info(f"Current token balance: {current_token_balance:.0f}")
-
-    #     new_token_balance = current_token_balance - trade_amount
-    #     logging.info(f"New token balance after transaction: {new_token_balance:.0f}")
-
-    #     logging.info("Updating balances")
-    #     self.wallet_manager.set_native_token_balance(new_eth_balance)
-    #     self.wallet_manager.set_token_balance(
-    #         token_address, int(str(new_token_balance))
-    #     )
-
-    def sell_token_demo(self, token_address, fee, trade_amount, token_amount, gas_fee):
+    def sell_token(self, token_address, fee, trade_amount, token_amount, gas_fee):
         logging.info(
             f"Selling token: {token_address}, trade_amount: {trade_amount}, token_amount: {token_amount}"
         )
+        if self.demo_mode:
+            # Convert the relevant values to Decimal
+            trade_amount = Decimal(trade_amount)
+            token_amount = Decimal(token_amount)
+            gas_fee = Decimal(gas_fee)
 
-        # Convert the relevant values to Decimal
-        trade_amount = Decimal(trade_amount)
-        token_amount = Decimal(token_amount)
-        gas_fee = Decimal(gas_fee)
+            # Calculate new balances after transaction
+            current_eth_balance = Decimal(
+                self.wallet_manager.get_native_token_balance()
+            )
 
-        # Calculate new balances after transaction
-        current_eth_balance = Decimal(self.wallet_manager.get_native_token_balance())
-        current_token_balance = Decimal(
-            self.wallet_manager.get_token_balance(token_address.lower())
-        )
+            # Calculate the net token amount after fees and slippage
+            net_token_amount_wei = calculate_estimated_net_token_amount_wei_after_fees(
+                fee, token_amount, 1
+            )
 
-        # Calculate the net token amount after fees and slippage
-        net_token_amount_wei = calculate_estimated_net_token_amount_wei_after_fees(
-            fee, token_amount
-        )
+            new_token_balance = 0
 
-        new_token_balance = current_token_balance - trade_amount
+            new_eth_balance = (current_eth_balance + net_token_amount_wei) - gas_fee
 
-        new_eth_balance = current_eth_balance + net_token_amount_wei - gas_fee
+            logging.info(f"net_token_amount_wei: {net_token_amount_wei:.0f}")
+            logging.info(f"new_eth_balance: {new_eth_balance:.0f}")
+            logging.info(f"new_token_balance: {new_token_balance:.0f}")
 
-        logging.info(f"net_token_amount_wei: {net_token_amount_wei:.0f}")
-        logging.info(f"new_eth_balance: {new_eth_balance:.0f}")
-        logging.info(f"new_token_balance: {new_token_balance:.0f}")
-
-        # Update balances
-        self.wallet_manager.set_native_token_balance(int(new_eth_balance))
-        self.wallet_manager.set_token_balance(token_address, int(new_token_balance))
+            # Update balances
+            self.wallet_manager.set_native_token_balance(int(new_eth_balance))
+            self.wallet_manager.set_token_balance(token_address, int(new_token_balance))
+        else:
+            self.protocol_manager.make_trade_output(
+                token_address,
+                self.blockchain_manager.current_native_token_address,
+                trade_amount,
+            )

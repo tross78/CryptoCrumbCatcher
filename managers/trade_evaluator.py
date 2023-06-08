@@ -24,53 +24,20 @@ class TradeEvaluator:
         self.protocol_manager = protocol_manager
         self.profit_margin = profit_margin
 
-    # def break_even_roi(self, initial_token_amount, fee, num_transactions=2):
-    #     gas_limit_per_transaction = (
-    #         self.blockchain_manager.gas_limit_per_transaction
-    #     )  # Example gas limit per transaction 150000
-    #     # Get the current gas price in Gwei
-    #     gas_price_gwei = self.blockchain_manager.web3_instance.eth.gas_price
-    #     gas_cost_per_transaction_weth = self.blockchain_manager.web3_instance.from_wei(
-    #         gas_price_gwei * gas_limit_per_transaction, "ether"
-    #     )
-    #     total_gas_fees = gas_cost_per_transaction_weth * num_transactions
-    #     net_token_amount = calculate_estimated_net_token_amount_wei_after_fees(
-    #         fee, initial_token_amount
-    #     )
-    #     break_even = (
-    #         Decimal(initial_token_amount)
-    #         + total_gas_fees
-    #         + (initial_token_amount - net_token_amount)
-    #     )
-    #     return break_even
-
-    def calculate_gas_cost(self, num_transactions=2):
-        gas_limit_per_transaction = self.blockchain_manager.gas_limit_per_transaction
-        gas_price_gwei = self.blockchain_manager.web3_instance.eth.gas_price
-        gas_cost_per_transaction_weth = self.blockchain_manager.web3_instance.from_wei(
-            gas_price_gwei * gas_limit_per_transaction, "ether"
-        )
-        total_gas_fees = gas_cost_per_transaction_weth * num_transactions
-        return total_gas_fees
-
-    def calculate_break_even(self, initial_token_amount, fee, num_transactions=2):
-        total_gas_fees = self.calculate_gas_cost(num_transactions)
-        net_token_amount = calculate_estimated_net_token_amount_wei_after_fees(
-            fee, initial_token_amount
-        )
-        break_even = (
-            Decimal(initial_token_amount)
-            + total_gas_fees
-            + (initial_token_amount - net_token_amount)
-        )
-        return break_even
+    def calculate_gas_fee_in_eth(self):
+        average_gas_price = self.blockchain_manager.web3_instance.eth.gas_price
+        estimated_gas_limit = 150000
+        gas_fee = average_gas_price * estimated_gas_limit
+        return gas_fee
 
     def calculate_net_amount_and_costs(
         self, initial_token_amount, fee, num_transactions=2
     ):
-        total_gas_fees = self.calculate_gas_cost(num_transactions)
+        total_gas_fees = self.blockchain_manager.calculate_gas_cost_eth(
+            num_transactions
+        )
         net_token_amount = calculate_estimated_net_token_amount_wei_after_fees(
-            fee, initial_token_amount
+            fee, initial_token_amount, num_transactions
         )
         costs = total_gas_fees + (initial_token_amount - net_token_amount)
         net_amount = initial_token_amount - costs
@@ -78,24 +45,22 @@ class TradeEvaluator:
 
     def calculate_roi_multiplier(self, fee):
         initial_investment = Decimal(self.data_manager.config["trade_amount_eth"])
-        net_amount, costs = self.calculate_net_amount_and_costs(initial_investment, fee)
-
+        net_amount, costs = self.calculate_net_amount_and_costs(
+            initial_investment, fee, 2
+        )
         break_even = initial_investment + costs
-
-        desired_profit_percentage = self.profit_margin
-        desired_profit_value = break_even * desired_profit_percentage
-
-        expected_roi_value = break_even + desired_profit_value
+        desired_profit_percentage = 1 + self.profit_margin
+        expected_roi_value = break_even * desired_profit_percentage
         expected_roi_multiplier = expected_roi_value / initial_investment
 
         logging.info(
             f"Initial investment: {initial_investment} \
+                Break even: {break_even} \
                 Net amount: {net_amount} \
                 Costs: {costs} \
                 Profit percentage: {desired_profit_percentage} \
                 Multiplier: {expected_roi_multiplier}"
         )
-
         return expected_roi_multiplier
 
     def has_balance_for_trade(self, token_address, trade_amount, action):
@@ -115,7 +80,7 @@ class TradeEvaluator:
                 )
                 return False
         elif action == TradeAction.SELL:
-            if token_address not in self.wallet_manager.get_tokens():
+            if token_address not in self.wallet_manager.get_demo_mode_tokens():
                 logging.info(f"{token_address} is not in the token balance dictionary.")
                 return False
             token_balance = self.wallet_manager.get_token_balance(token_address)

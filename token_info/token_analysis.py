@@ -4,6 +4,7 @@ import logging
 import time
 from decimal import Decimal
 
+import aiofiles
 import pyautogui
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
@@ -23,11 +24,16 @@ class TokenAnalysis:
         self.blockchain_manager: BlockchainManager = blockchain_manager
         self.protocol_manager: ProtocolManager = defiprotocol_manager
         self.token_score_cache = {}
-        self.load_token_score_cache()
+        self.lock = asyncio.Lock()  # Add a lock
+        # self.load_token_score_cache()
 
-    def load_token_score_cache(self):
-        with open("data/tokensniffer_cache.json", "r") as json_file:
-            self.token_score_cache = json.load(json_file)
+    async def load_token_score_cache(self):
+        try:
+            async with aiofiles.open("data/tokensniffer_cache.json", "r") as json_file:
+                self.token_score_cache = json.loads(await json_file.read())
+        except (FileNotFoundError, json.JSONDecodeError):
+            # File does not exist or invalid JSON. Initialize an empty dict.
+            self.token_score_cache = {}
 
     def get_token_score_from_cache(self, token_address):
         selected_chain = self.blockchain_manager.get_current_chain()
@@ -62,7 +68,7 @@ class TokenAnalysis:
 
         return False
 
-    def check_token_score(self, token_address):
+    async def check_token_score(self, token_address):
         selected_chain = self.blockchain_manager.get_current_chain()
         # logging.info(f'getting token score for : {token_address}')
         token_score = self.get_token_score_from_cache(token_address)
@@ -101,7 +107,7 @@ class TokenAnalysis:
         html = driver.page_source
 
         score = self.extract_score_from_html(html)
-        self.cache_token_score(token_address, score)
+        await self.cache_token_score(token_address, score)
         driver.quit()
         # logging.info(f'token retrieved from tokensniffer: {score}')
         return score
@@ -171,7 +177,7 @@ class TokenAnalysis:
         # logging.info("token score not found: returning 0")
         return 0  # No non-zero scores found
 
-    def cache_token_score(self, token_address, score):
+    async def cache_token_score(self, token_address, score):
         selected_chain = self.blockchain_manager.get_current_chain()
         current_timestamp = time.time()
         token_data = self.token_score_cache.setdefault(
@@ -181,74 +187,26 @@ class TokenAnalysis:
         token_data["score"] = score
         token_data["last_checked"] = current_timestamp
 
-        with open("data/tokensniffer_cache.json", "w") as json_file:
-            json.dump(self.token_score_cache, json_file)
-
-    # async def is_token_price_increase(self, token_address, fee, pool_address):
-    #     try:
-    #         # logging.info(
-    #         #     f"Checking price increase for token {token_address}. Pool address {pool_address}")
-    #         loop = asyncio.get_event_loop()
-
-    #         start_amount = await loop.run_in_executor(
-    #             None,
-    #             self.protocol_manager.get_min_token_for_native,
-    #             token_address,
-    #             self.data_manager.config["trade_amount_wei"],
-    #             fee,
-    #         )
-    #         await asyncio.sleep(self.data_manager.config["monitor_timeframe"])
-    #         end_amount = await loop.run_in_executor(
-    #             None,
-    #             self.protocol_manager.get_min_token_for_native,
-    #             token_address,
-    #             self.data_manager.config["trade_amount_wei"],
-    #             fee,
-    #         )
-
-    #         threshold_amount = int(
-    #             Decimal(str(start_amount))
-    #             / Decimal(str(self.data_manager.config["price_increase_threshold"]))
-    #         )
-    #         logging.info(
-    #             f"Token start amount: {start_amount} \
-    #                 Token end amount: {end_amount} \
-    #                     Threshold amount: {threshold_amount}"
-    #         )
-
-    #         if start_amount == -1 or end_amount == -1:
-    #             return False, 0
-
-    #         if end_amount < threshold_amount:
-    #             return True, start_amount
-
-    #         return False, start_amount
-
-    #     except Exception as error_message:
-    #         logging.error(
-    #             f"Error occurred while getting price for \
-    #                 token {token_address}: {str(error_message)}"
-    #         )
-    #         return False, 0  # Return default/fallback values
-
-    # Token start amount: 183712544744171                     Token end amount: 183712544744171                         Threshold amount: 183254408722365
+        async with self.lock:  # Lock the method
+            async with aiofiles.open("data/tokensniffer_cache.json", "w") as json_file:
+                await json_file.write(json.dumps(self.token_score_cache))
+        logging.info(
+            f"Lock released after attempting to load data for cache_token_score"
+        )
 
     async def is_token_price_increase(self, token_address, fee, pool_address):
         try:
-            loop = asyncio.get_event_loop()
-
-            start_amount = await loop.run_in_executor(
-                None,
-                self.protocol_manager.get_min_token_for_native,
+            print("starting is_token_price_increase start_amount")
+            start_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
                 self.data_manager.config["trade_amount_wei"],
                 fee,
             )
+
             await asyncio.sleep(self.data_manager.config["monitor_timeframe"])
 
-            end_amount = await loop.run_in_executor(
-                None,
-                self.protocol_manager.get_min_token_for_native,
+            print("starting is_token_price_increase end_amount")
+            end_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
                 self.data_manager.config["trade_amount_wei"],
                 fee,
@@ -262,10 +220,10 @@ class TokenAnalysis:
                 / Decimal(str(self.data_manager.config["price_increase_threshold"]))
             )
 
-            logging.info(
+            print(
                 f"Token start amount: {start_amount} \
-                    Token end amount: {end_amount} \
-                        Threshold amount: {threshold_amount}"
+                Token end amount: {end_amount} \
+                    Threshold amount: {threshold_amount}"
             )
 
             if end_amount < threshold_amount:
@@ -275,6 +233,7 @@ class TokenAnalysis:
 
         except Exception as e:
             logging.error(f"Error in is_token_price_increase: {e}")
+            print(f"Error in is_token_price_increase: {e}")
             return False, 0
 
     # def get_top_holder_percentage(self, token_address, pool_address):
@@ -301,9 +260,14 @@ class TokenAnalysis:
     #     top_holder_percentage_good = top_holder_percentage <= top_holder_percentage_threshold
     #     return top_holder_percentage_good
 
-    def has_exploits(self, token_address):
-        token_score = self.check_token_score(Web3.to_checksum_address(token_address))
-        if token_score >= self.data_manager.config["token_rating_threshold"]:
-            return False
-        else:
-            return True
+    async def has_exploits(self, token_address):
+        current_chain_name = self.blockchain_manager.get_current_chain().name
+        if current_chain_name != "goerli":
+            token_score = await self.check_token_score(
+                Web3.to_checksum_address(token_address)
+            )
+            if token_score >= self.data_manager.config["token_rating_threshold"]:
+                return False
+            else:
+                return True
+        return False

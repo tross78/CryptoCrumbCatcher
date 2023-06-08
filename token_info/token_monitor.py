@@ -1,11 +1,13 @@
 import json
 import logging
 
+import aiofiles
+
 
 class TokenMonitor:
     def __init__(self, selected_chain_name, reset_userdata_on_load):
         self.reset_userdata_on_load = reset_userdata_on_load
-        self.tokens = self.load_monitored_tokens()
+        self.tokens = {}
         self.selected_chain_name = selected_chain_name
 
     def get_monitored_tokens(self):
@@ -15,16 +17,19 @@ class TokenMonitor:
         self.tokens[self.selected_chain_name] = monitored_tokens
         self.save_monitored_tokens()
 
-    def load_monitored_tokens(self):
-        if self.reset_userdata_on_load:
-            self.tokens = {"ethereum_mainnet": {}, "arbitrum_mainnet": {}}
-            self.save_monitored_tokens()
-        with open("data/monitored_tokens.json", "r") as json_file:
-            return json.load(json_file)
+    async def load_monitored_tokens(self):
+        try:
+            async with aiofiles.open("data/monitored_tokens.json", "r") as json_file:
+                self.tokens = json.loads(await json_file.read())
+                logging.info(f"Monitored tokens loaded {self.tokens}")
+        except (FileNotFoundError, json.JSONDecodeError):
+            # File does not exist or invalid JSON. Initialize an empty dict.
+            logging.info("Monitored tokens not loaded")
+            self.tokens = {}
 
-    def save_monitored_tokens(self):
-        with open("data/monitored_tokens.json", "w") as json_file:
-            json.dump(self.tokens, json_file)
+    async def save_monitored_tokens(self):
+        async with aiofiles.open("data/monitored_tokens.json", "w") as json_file:
+            await json_file.write(json.dumps(self.tokens))
 
     def is_duplicate(self, token_address, pool_address):
         token_pool_id = f"{token_address.lower()}_{pool_address.lower()}"
@@ -41,15 +46,16 @@ class TokenMonitor:
 
         return False
 
-    def add_monitored_token(
+    async def add_monitored_token(
         self,
         factory_address,
         token_address,
         pool_address,
         native_token_address,
-        native_token_trade_amount,
         fee,
         initial_token_amount,
+        current_token_amount,
+        trade_amount_wei,
     ):
         monitored_tokens = self.get_monitored_tokens()
         if not self.is_duplicate(token_address, pool_address):
@@ -58,18 +64,19 @@ class TokenMonitor:
                 "factory_address": factory_address,
                 "token_address": token_address.lower(),
                 "native_token_address": native_token_address,
-                "native_token_trade_amount": native_token_trade_amount,
                 "fee": fee,
                 "pool_address": pool_address.lower(),
                 "initial_token_amount": initial_token_amount,
+                "transaction_token_amount": current_token_amount,
+                "from_token_amount": trade_amount_wei,
             }
             logging.info(f"Token {token_address} added to monitored tokens.")
             # Save the updated dictionary of monitored tokens
-            self.save_monitored_tokens()
+            await self.save_monitored_tokens()
         else:
             logging.info(f"Token {token_address} is already in monitored tokens.")
 
-    def remove_monitored_token(self, token_address, pool_address):
+    async def remove_monitored_token(self, token_address, pool_address):
         # Remove the object with the matching "token_address" and "pool_address" combination
         monitored_tokens = self.get_monitored_tokens()
         removed_tokens = [
@@ -82,4 +89,4 @@ class TokenMonitor:
             del monitored_tokens[token_key]
 
         # Save the updated dictionary of monitored tokens
-        self.save_monitored_tokens()
+        await self.save_monitored_tokens()

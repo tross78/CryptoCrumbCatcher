@@ -6,6 +6,7 @@ from typing import List, Optional, Union
 
 from eth_typing import Address, ChecksumAddress
 from uniswap import Uniswap
+from web3.middleware import geth_poa_middleware
 
 from defi.dex_client_wrapper import DexClientWrapper
 from managers.blockchain_manager import BlockchainManager
@@ -23,24 +24,20 @@ class ProtocolManager:
         self.subgraph_manager = SubgraphManager(blockchain_manager)
         self.blockchain_manager: BlockchainManager = blockchain_manager
         self.demo_mode = demo_mode
+        uniswap_client = Uniswap(
+            address=self.blockchain_manager.get_wallet_address(),
+            private_key=self.blockchain_manager.get_wallet_private_key(),
+            version=3,
+        )
 
+        uniswap_client.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         if demo_mode:
             self.dex_client_wrapper = SimulatedDexClientWrapper(
-                Uniswap(
-                    address=self.blockchain_manager.get_wallet_address(),
-                    private_key=self.blockchain_manager.get_wallet_private_key(),
-                    version=3,
-                ),
+                uniswap_client,
                 self.blockchain_manager,
             )
         else:
-            self.dex_client_wrapper = DexClientWrapper(
-                Uniswap(
-                    address=self.blockchain_manager.get_wallet_address(),
-                    private_key=self.blockchain_manager.get_wallet_private_key(),
-                    version=3,
-                )
-            )
+            self.dex_client_wrapper = DexClientWrapper(uniswap_client)
 
     def validate_get_price_inputs(
         self,
@@ -200,12 +197,17 @@ class ProtocolManager:
             logging.info("Invalid token price estimation. Cannot proceed further.")
             return -1
 
-    def make_trade(self, token_address, native_token_address, trade_amount):
+    def make_trade(self, token_address, native_token_address, trade_amount, fee):
         token_address = self.blockchain_manager.web3_instance.to_checksum_address(
             token_address
         )
+        native_token_address = (
+            self.blockchain_manager.web3_instance.to_checksum_address(
+                native_token_address
+            )
+        )
         self.dex_client_wrapper.make_trade(
-            token_address, native_token_address, trade_amount
+            token_address, native_token_address, trade_amount, fee
         )
 
     def make_trade_output(self, token_address, native_token_address, trade_amount):

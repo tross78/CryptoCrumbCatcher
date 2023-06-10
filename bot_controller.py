@@ -40,7 +40,9 @@ class BotController:
             reset_userdata_on_load,
         )
         self.token_monitor = TokenMonitor(
-            self.blockchain_manager.get_current_chain().name, reset_userdata_on_load
+            self.blockchain_manager.get_current_chain().name,
+            self.wallet_manager,
+            reset_userdata_on_load,
         )
         self.token_analysis: TokenAnalysis = TokenAnalysis(
             self.data_manager, self.blockchain_manager, self.protocol_manager

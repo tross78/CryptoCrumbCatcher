@@ -6,9 +6,7 @@
     },
     "arbitrum_mainnet": {
         "tokens": {
-            "0x82af49447d8a07e3bd95bd0d56f35241523fbab1": 950394166725446979,
-            "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79": 0,
-            "0xb2498cde54810424a24fdd23579164265a0c14c5": 16266813093692
+            "0x82af49447d8a07e3bd95bd0d56f35241523fbab1": 1000000000000000000
         }
     },
     "bsc_mainnet": {

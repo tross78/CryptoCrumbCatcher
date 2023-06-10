@@ -12,9 +12,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-import tracemalloc
-
-tracemalloc.start()
 
 
 def get_select_chain_input(selected_chain_options):
@@ -54,33 +51,33 @@ async def main(selected_chain):
             factory_contract = bot_controller.blockchain_manager.get_dex_contract()
             all_tasks = set()
 
-            new_tokens = await get_new_tokens(bot_controller, factory_contract)
+            # new_tokens = await get_new_tokens(bot_controller, factory_contract)
 
-            logging.info(f"New tokens: {new_tokens}")
+            # logging.info(f"New tokens: {new_tokens}")
 
-            (
-                price_check_tasks,
-                tokens_with_check_tasks,
-            ) = await token_status_manager.create_token_check_tasks(new_tokens)
+            # (
+            #     price_check_tasks,
+            #     tokens_with_check_tasks,
+            # ) = await token_status_manager.create_token_check_tasks(new_tokens)
 
-            logging.info(f"Price check tasks: {price_check_tasks}")
-            logging.info(f"Tokens with check tasks: {tokens_with_check_tasks}")
+            # logging.info(f"Price check tasks: {price_check_tasks}")
+            # logging.info(f"Tokens with check tasks: {tokens_with_check_tasks}")
 
-            tasks_only = [task for task, _, _, _ in price_check_tasks]
-            all_tasks.update(tasks_only)
-            # Wait for all price check tasks to complete
-            results = await asyncio.gather(*tasks_only, return_exceptions=True)
+            # tasks_only = [task for task, _, _, _ in price_check_tasks]
+            # all_tasks.update(tasks_only)
+            # # Wait for all price check tasks to complete
+            # results = await asyncio.gather(*tasks_only, return_exceptions=True)
 
-            for task_result in results:
-                if isinstance(task_result, Exception):
-                    logging.error(f"Error in price check task: {task_result}")
-                else:
-                    logging.info(f"Successful task result: {task_result}")
+            # for task_result in results:
+            #     if isinstance(task_result, Exception):
+            #         logging.error(f"Error in price check task: {task_result}")
+            #     else:
+            #         logging.info(f"Successful task result: {task_result}")
 
-            all_tasks.add(asyncio.create_task(watchlist.update(price_check_tasks)))
+            # all_tasks.add(asyncio.create_task(watchlist.update(price_check_tasks)))
 
             monitor_trades_task = asyncio.create_task(
-                bot_controller.trade_manager.monitor_trades(factory_contract, watchlist)
+                bot_controller.trade_manager.monitor_trades(watchlist)
             )
             all_tasks.add(monitor_trades_task)
 

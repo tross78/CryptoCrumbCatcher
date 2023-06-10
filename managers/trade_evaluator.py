@@ -6,6 +6,7 @@ from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
 from managers.wallet_manager import WalletManager
 from models.trade_action import TradeAction
+from models.trade_data import PotentialTrade, TradeData
 from utils import calculate_estimated_net_token_amount_wei_after_fees
 
 
@@ -30,32 +31,37 @@ class TradeEvaluator:
         gas_fee = average_gas_price * estimated_gas_limit
         return gas_fee
 
-    def calculate_net_amount_and_costs(
-        self, initial_token_amount, fee, num_transactions=2
-    ):
-        total_gas_fees = self.blockchain_manager.calculate_gas_cost_eth(
+    def calculate_net_amount_and_costs(self, token_base_value, fee, num_transactions=2):
+        total_gas_cost = self.blockchain_manager.calculate_gas_cost_wei(
             num_transactions
         )
         net_token_amount = calculate_estimated_net_token_amount_wei_after_fees(
-            fee, initial_token_amount, num_transactions
+            fee, token_base_value, num_transactions
         )
-        costs = total_gas_fees + (initial_token_amount - net_token_amount)
-        net_amount = initial_token_amount - costs
+        net_amount = net_token_amount - total_gas_cost
+        fees = token_base_value - net_amount
+        costs = total_gas_cost + fees
         return net_amount, costs
 
-    def calculate_roi_multiplier(self, fee):
-        initial_investment = Decimal(self.data_manager.config["trade_amount_eth"])
+    def calculate_roi_multiplier(
+        self, potential_trade: PotentialTrade, trade_data: TradeData
+    ):
+        if (
+            potential_trade.token_address
+            == "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79"
+        ):
+            abc = "abc"
+        orig_investment = Decimal(trade_data.original_investment_eth)
+        # selling to ETH will cost some ETH (fees, slippage)
         net_amount, costs = self.calculate_net_amount_and_costs(
-            initial_investment, fee, 2
+            orig_investment, potential_trade.fee, 2
         )
-        break_even = initial_investment + costs
         desired_profit_percentage = 1 + self.profit_margin
-        expected_roi_value = break_even * desired_profit_percentage
-        expected_roi_multiplier = expected_roi_value / initial_investment
+        expected_roi_value = (orig_investment + costs) * desired_profit_percentage
+        expected_roi_multiplier = expected_roi_value / orig_investment
 
         logging.info(
-            f"Initial investment: {initial_investment} \
-                Break even: {break_even} \
+            f"Initial investment: {orig_investment} \
                 Net amount: {net_amount} \
                 Costs: {costs} \
                 Profit percentage: {desired_profit_percentage} \
@@ -80,9 +86,6 @@ class TradeEvaluator:
                 )
                 return False
         elif action == TradeAction.SELL:
-            if token_address not in self.wallet_manager.get_demo_mode_tokens():
-                logging.info(f"{token_address} is not in the token balance dictionary.")
-                return False
             token_balance = self.wallet_manager.get_token_balance(token_address)
             if token_balance < trade_amount:
                 logging.info(

@@ -57,13 +57,3 @@ def get_block_number_by_timestamp(
             return middle
 
     return lower_bound
-
-
-# def encode_position_key(token0, token1, fee, tick_lower, tick_upper):
-#     # Token 0 and token 1 should be input as their token ID in hex format.
-#     # Fee should be input as an integer.
-#     # Tick lower and tick upper should be input as an integer.
-#     return Web3.solidityKeccak(
-#         ['address', 'address', 'uint24', 'int24', 'int24'],
-#         [token0, token1, fee, tick_lower, tick_upper]
-#     )

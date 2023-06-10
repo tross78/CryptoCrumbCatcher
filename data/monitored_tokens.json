@@ -1,15 +1,1 @@
-{
-    "arbitrum_mainnet": {
-        "0xb2498cde54810424a24fdd23579164265a0c14c5_0x83b43b0652cced8de54c4f941c97ecbb07fbfa01": {
-            "factory_address": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
-            "token_address": "0xb2498cde54810424a24fdd23579164265a0c14c5",
-            "native_token_address": "0x82af49447d8a07e3bd95bd0d56f35241523fbab1",
-            "native_token_trade_amount": 60000000000000000,
-            "fee": 3000,
-            "pool_address": "0x83b43b0652cced8de54c4f941c97ecbb07fbfa01",
-            "initial_token_amount": 200905494550674,
-            "transaction_token_amount": 16431450504869,
-            "from_token_amount": 60000000000000000
-        }
-    }
-}
+{"arbitrum_mainnet": {}, "goerli_testnet": {}}

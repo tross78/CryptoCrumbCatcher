@@ -86,6 +86,7 @@ class BlockchainManager:
         return self.current_chain
 
     def get_token_balance(self, wallet_address, token_address):
+        token_address = self.web3_instance.to_checksum_address(token_address)
         token_contract = self.web3_instance.eth.contract(
             address=token_address, abi=self.erc20_abi
         )
@@ -113,5 +114,5 @@ class BlockchainManager:
         gas_price_gwei = self.web3_instance.eth.gas_price
         gas_cost_per_transaction_wei = gas_price_gwei * gas_limit_per_transaction
         total_gas_fees_wei = gas_cost_per_transaction_wei * num_transactions
-        total_gas_fees_eth = self.web3_instance.from_wei(total_gas_fees_wei, 'ether')
+        total_gas_fees_eth = self.web3_instance.from_wei(total_gas_fees_wei, "ether")
         return total_gas_fees_eth

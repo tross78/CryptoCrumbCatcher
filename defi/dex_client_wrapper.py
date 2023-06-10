@@ -1,10 +1,12 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+from uniswap import Uniswap
+
 
 class DexClientWrapper:
     def __init__(self, dex_client):
-        self.dex_client = dex_client
+        self.dex_client: Uniswap = dex_client
         self.executor = ThreadPoolExecutor(max_workers=5)
 
     async def get_price_input(self, token_in, token_out, token_trade_amount, fee):
@@ -25,6 +27,7 @@ class DexClientWrapper:
 
     async def get_price_output(self, token_in, token_out, token_trade_amount, fee):
         loop = asyncio.get_running_loop()
+        # print(f"get_price_output({token_in}, {token_out}, {token_trade_amount}, {fee}")
         try:
             price = await loop.run_in_executor(
                 self.executor,
@@ -39,8 +42,14 @@ class DexClientWrapper:
             print(f"Could not get the output price for token {token_in}: {str(e)}")
             return -1
 
-    def make_trade(self, token_address, native_token_address, trade_amount):
-        self.dex_client.make_trade(token_address, native_token_address, trade_amount)
+    def make_trade(self, token_address, native_token_address, trade_amount, fee):
+        self.dex_client.make_trade(
+            token_address,
+            native_token_address,
+            trade_amount,
+            None,
+            fee,
+        )
 
     def make_trade_output(self, token_address, native_token_address, trade_amount):
         self.dex_client.make_trade_output(
@@ -48,4 +57,4 @@ class DexClientWrapper:
         )
 
     def approve(self, token_address, max_approval):
-        self.dex_client.approve(token_address, max_approval)
+        self.dex_client.approve(token_address)

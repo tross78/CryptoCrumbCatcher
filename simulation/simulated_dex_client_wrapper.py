@@ -108,7 +108,7 @@ class SimulatedDexClientWrapper(DexClientWrapper):
         )
         return result
 
-    def make_trade(self, token_address, native_token_address, trade_amount):
+    def make_trade(self, token_address, native_token_address, trade_amount, fee):
         return
 
     def make_trade_output(self, token_address, native_token_address, trade_amount):

@@ -1,1 +1,4 @@
-{"arbitrum_mainnet": {"0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851_0xbf30b73504ac4dfb022c4e6ee111839ca09b0d34": {"token_address": "0x15b2fb8f08e4ac1ce019eadae02ee92aedf06851", "fee": 10000, "pool_address": "0xbf30b73504ac4dfb022c4e6ee111839ca09b0d34", "initial_token_amount": 910285310797161270786}, "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d_0xaf1f6c3485ad1f1640267c402d3f2bf54c0b8dd0": {"token_address": "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d", "fee": 3000, "pool_address": "0xaf1f6c3485ad1f1640267c402d3f2bf54c0b8dd0", "initial_token_amount": 63391598764821574}, "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d_0xe91b274fe3d23c0ed31066a66fb09447e6645ece": {"token_address": "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d", "fee": 10000, "pool_address": "0xe91b274fe3d23c0ed31066a66fb09447e6645ece", "initial_token_amount": 77873538910259542}}}
+{
+    "arbitrum_mainnet": {},
+    "goerli_testnet": {}
+}

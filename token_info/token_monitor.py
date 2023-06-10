@@ -3,12 +3,18 @@ import logging
 
 import aiofiles
 
+from managers.wallet_manager import WalletManager
+from models.trade_data import PotentialTrade, TradeData
+
 
 class TokenMonitor:
-    def __init__(self, selected_chain_name, reset_userdata_on_load):
+    def __init__(
+        self, selected_chain_name, wallet_manager: WalletManager, reset_userdata_on_load
+    ):
         self.reset_userdata_on_load = reset_userdata_on_load
         self.tokens = {}
         self.selected_chain_name = selected_chain_name
+        self.wallet_manager = wallet_manager
 
     def get_monitored_tokens(self):
         return self.tokens.setdefault(self.selected_chain_name, {})
@@ -48,33 +54,37 @@ class TokenMonitor:
 
     async def add_monitored_token(
         self,
-        factory_address,
-        token_address,
-        pool_address,
-        native_token_address,
-        fee,
-        initial_token_amount,
-        current_token_amount,
-        trade_amount_wei,
+        potential_trade: PotentialTrade,
+        trade_data: TradeData,
     ):
         monitored_tokens = self.get_monitored_tokens()
-        if not self.is_duplicate(token_address, pool_address):
-            token_pool_id = f"{token_address}_{pool_address}"
+        if not self.is_duplicate(
+            potential_trade.token_address, potential_trade.pool_address
+        ):
+            token_pool_id = (
+                f"{potential_trade.token_address}_{potential_trade.pool_address}"
+            )
+
+            # update the token balance due to slippage, fees, etc
+            actual_token_balance = self.wallet_manager.get_token_balance(
+                potential_trade.token_address.lower()
+            )
             monitored_tokens[token_pool_id] = {
-                "factory_address": factory_address,
-                "token_address": token_address.lower(),
-                "native_token_address": native_token_address,
-                "fee": fee,
-                "pool_address": pool_address.lower(),
-                "initial_token_amount": initial_token_amount,
-                "transaction_token_amount": current_token_amount,
-                "from_token_amount": trade_amount_wei,
+                "token_address": potential_trade.token_address.lower(),
+                "fee": potential_trade.fee,
+                "pool_address": potential_trade.pool_address.lower(),
+                "token_base_value": potential_trade.token_base_value,
+                "input_amount": trade_data.input_amount,
             }
-            logging.info(f"Token {token_address} added to monitored tokens.")
+            logging.info(
+                f"Token {potential_trade.token_address} added to monitored tokens."
+            )
             # Save the updated dictionary of monitored tokens
             await self.save_monitored_tokens()
         else:
-            logging.info(f"Token {token_address} is already in monitored tokens.")
+            logging.info(
+                f"Token {potential_trade.token_address} is already in monitored tokens."
+            )
 
     async def remove_monitored_token(self, token_address, pool_address):
         # Remove the object with the matching "token_address" and "pool_address" combination

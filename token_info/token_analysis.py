@@ -199,7 +199,7 @@ class TokenAnalysis:
             print("starting is_token_price_increase start_amount")
             start_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
-                self.data_manager.config["trade_amount_wei"],
+                self.data_manager.config["trade_amount_min"],
                 fee,
             )
 
@@ -208,16 +208,19 @@ class TokenAnalysis:
             print("starting is_token_price_increase end_amount")
             end_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
-                self.data_manager.config["trade_amount_wei"],
+                self.data_manager.config["trade_amount_min"],
                 fee,
             )
 
             if start_amount == -1 or end_amount == -1:
                 return False, 0
 
+            price_increase_threshold = self.data_manager.config[
+                "price_increase_threshold"
+            ]
+
             threshold_amount = int(
-                Decimal(str(start_amount))
-                / Decimal(str(self.data_manager.config["price_increase_threshold"]))
+                Decimal(str(start_amount)) / Decimal(str(price_increase_threshold))
             )
 
             print(
@@ -262,7 +265,7 @@ class TokenAnalysis:
 
     async def has_exploits(self, token_address):
         current_chain_name = self.blockchain_manager.get_current_chain().name
-        if current_chain_name != "goerli":
+        if current_chain_name != "goerli_testnet":
             token_score = await self.check_token_score(
                 Web3.to_checksum_address(token_address)
             )

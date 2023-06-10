@@ -32,6 +32,9 @@ class WalletManager:
         return self.demo_balances[current_chain_name]["tokens"]
 
     def get_token_balance(self, token_address):
+        token_address = self.blockchain_manager.web3_instance.to_checksum_address(
+            token_address
+        )
         if self.demo_mode:
             current_chain_name = self.blockchain_manager.get_current_chain().name
 
@@ -56,6 +59,7 @@ class WalletManager:
         self.demo_balances[selected_chain.name]["tokens"][
             self.blockchain_manager.current_native_token_address.lower()
         ] = token_amount
+        self.save_demo_balances(self.demo_balances)
 
     def set_token_balance(self, token_address, balance):
         if self.demo_mode:

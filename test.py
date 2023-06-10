@@ -1,18 +1,28 @@
 # Online Python compiler (interpreter) to run Python online.
 # Write Python 3 code in this online editor and run it.
-from decimal import Decimal
-
-from defi.protocol_manager import ProtocolManager
-from managers.blockchain_manager import BlockchainManager
+from bot_controller import BotController
 from managers.data_management import DataManagement
 from models.chain_constants import SelectedChain
-from test_class import TestClass
 
-# Values are given
-fee = 3000  # in parts per million
-initial_investment = 60000000000000000  # in Wei
 
-profit_margin = 0.01  # 1% desired profit margin
+def initialize_bot_controller(selected_chain):
+    data_manager: DataManagement = DataManagement()
+    bot = BotController(
+        data_manager=data_manager,
+        user_selected_chain=selected_chain,
+        reset_userdata_on_load=False,
+    )
+
+    # bot.protocol_manager.approve(
+    #     "0x6B175474E89094C44Da98b954EedeAC495271d0F",  # DAI
+    #     10000000000000000,  # 0.01 ETH
+    # )
+
+    bot.protocol_manager.make_trade_output(
+        "0x6B175474E89094C44Da98b954EedeAC495271d0F",  # DAI
+        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",  # test_class.blockchain_manager.current_native_token_address,  # GETH
+        10000000000000000,  # 0.01 ETH
+    )
 
 
 def get_select_chain_input(selected_chain_options):
@@ -37,19 +47,4 @@ def get_select_chain_input(selected_chain_options):
 user_selected_chain = get_select_chain_input(list(SelectedChain))
 print(f"Selected chain: {user_selected_chain.value}")
 
-blockchain_manager = BlockchainManager(user_selected_chain)
-data_manager = DataManagement()
-protocol_manager = ProtocolManager(blockchain_manager, False)
-
-test_class = TestClass(data_manager, blockchain_manager, protocol_manager)
-
-# test_class.protocol_manager.approve(
-#     test_class.blockchain_manager.current_native_token_address, 100000000000000000
-# )
-
-# Buy 1 DAI using GETH
-test_class.protocol_manager.make_trade(
-    test_class.blockchain_manager.current_native_token_address,  # GETH
-    "0x5777d92f208679DB4b9778590Fa3CAB3aC9e2168",  # DAI
-    10000000000000000,  # 0.01 ETH
-)
+initialize_bot_controller(user_selected_chain)

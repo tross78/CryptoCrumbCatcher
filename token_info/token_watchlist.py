@@ -45,10 +45,10 @@ class TokenWatchlist:
             if result:
                 try:
                     if not self.is_duplicate(token_address, pool_address):
-                        (price_has_increased, initial_token_amount) = result
+                        (price_has_increased, token_base_value) = result
                         # if price_has_increased:
                         await self.add(
-                            token_address, fee, pool_address, initial_token_amount
+                            token_address, fee, pool_address, token_base_value
                         )
                 except Exception as error_message:
                     logging.error(
@@ -56,7 +56,7 @@ class TokenWatchlist:
                     )
                     continue
 
-    async def add(self, token_address, fee, pool_address, initial_token_amount):
+    async def add(self, token_address, fee, pool_address, token_base_value):
         if len(self.tokens) < self.max_tokens:
             current_chain = self.blockchain_manager.get_current_chain().name
             if (
@@ -75,7 +75,7 @@ class TokenWatchlist:
                 token_pool_id = f"{token_address.lower()}_{pool_address.lower()}"
                 if (
                     current_chain not in self.tokens
-                    and initial_token_amount
+                    and token_base_value
                     > total_transaction_gas_price_wei  # weeds out errored price calls
                 ):
                     self.tokens[current_chain] = {}
@@ -84,7 +84,7 @@ class TokenWatchlist:
                     "token_address": token_address.lower(),
                     "fee": fee,
                     "pool_address": pool_address.lower(),
-                    "initial_token_amount": initial_token_amount,
+                    "token_base_value": token_base_value,
                 }
 
                 logging.info(f"Token {token_address} added to watchlist.")
@@ -124,11 +124,6 @@ class TokenWatchlist:
                 return True
 
         return False
-
-    # async def set_tokens(self, tokens):
-    #     current_chain = self.blockchain_manager.get_current_chain().name
-    #     self.tokens[current_chain] = tokens
-    #     await self.save_to_file()
 
     async def load_from_file(self):
         try:

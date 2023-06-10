@@ -10,5 +10,5 @@ class DataManagement:
         self.config = {}
         with open("config.json", "r") as json_file:
             self.config = json.load(json_file)
-        trade_amount_wei = Web3.to_wei(self.config["trade_amount_eth"], "ether")
-        self.config["trade_amount_wei"] = trade_amount_wei
+        trade_amount_min = Web3.to_wei(self.config["trade_amount_eth"], "ether")
+        self.config["trade_amount_min"] = trade_amount_min

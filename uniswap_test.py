@@ -30,7 +30,7 @@ print(f"Selected chain: {user_selected_chain.value}")
 
 
 blockchain_manager = BlockchainManager(user_selected_chain)
-# provider_url = os.environ["ARB_PROVIDER_URL"]
+
 uniswap_client = Uniswap(
     address=blockchain_manager.get_wallet_address(),
     private_key=blockchain_manager.get_wallet_private_key(),

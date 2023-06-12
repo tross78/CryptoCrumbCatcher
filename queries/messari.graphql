@@ -1,26 +1,27 @@
 {
-    liquidityPools(
-        first: 1000
-        orderBy: createdTimestamp
-        orderDirection: desc
-        where: {
-            inputTokens_: {id_contains: "$native_token_address"}
-            totalValueLockedUSD_gt: $min_liquidity_usd
-            totalValueLockedUSD_lt: $max_liquidity_usd
-            cumulativeVolumeUSD_gt: $min_volume_usd
-        }
-    ) {
-        id
-        fees {
-            id
-            feePercentage
-        }
-        tick
-        totalLiquidity
-        inputTokens {
-            id
-            name
-            symbol
-        }
+  liquidityPools(
+    first: 1000
+    orderBy: createdTimestamp
+    orderDirection: desc
+    where: {
+      inputTokens_: { id_contains: "$native_token_address" }
+      createdTimestamp_gt: "$past_time"
+      totalValueLockedUSD_gt: $min_liquidity_usd
+      totalValueLockedUSD_lt: $max_liquidity_usd
+      cumulativeVolumeUSD_gt: $min_volume_usd
     }
+  ) {
+    id
+    fees {
+      id
+      feePercentage
+    }
+    tick
+    totalLiquidity
+    inputTokens {
+      id
+      name
+      symbol
+    }
+  }
 }

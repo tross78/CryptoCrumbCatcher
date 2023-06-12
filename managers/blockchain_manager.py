@@ -27,7 +27,8 @@ class BlockchainManager:
         self.set_current_chain(current_chain_num)
         self.current_native_token_address = self.current_chain.native_token_address
         short_name = self.current_chain.short_name.upper()
-        provider_url = os.environ[f"{short_name}_PROVIDER_URL"]
+        provider_urls = json.loads(os.environ[f"{short_name}_PROVIDER_URLS"])
+        provider_url = provider_urls[0]
         os.environ["PROVIDER"] = provider_url
         self.web3_instance: Web3 = Web3(Web3.HTTPProvider(provider_url))
         self.web3_instance.middleware_onion.inject(
@@ -56,7 +57,9 @@ class BlockchainManager:
                 chain_data["name"],
                 chain_data["full_name"],
                 chain_data["short_name"],
-                os.environ.get(f'{chain_data["short_name"].upper()}_PROVIDER_URL'),
+                json.loads(
+                    os.environ.get(f'{chain_data["short_name"].upper()}_PROVIDER_URLS')
+                ),
                 chain_data["subgraph_url"],
                 chain_data["subgraph_type"],
                 chain_data["factory_address"],

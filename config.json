@@ -1,14 +1,16 @@
 {
-    "liquidity_usd": 100,
+    "min_liquidity_usd": 500,
+    "max_liquidity_usd": 50000,
     "max_created_threshold": 168,
     "holders_threshold": 20,
     "top_holder_percentage": 10,
-    "trade_amount_eth": 0.001,
-    "trade_amount_percent": 0.10,
-    "profit_margin": 0.001,
+    "trade_amount_eth": 0.01,
+    "trade_amount_percentage": 0.10,
+    "profit_margin": 0.05,
     "monitor_timeframe": 5,
-    "price_increase_threshold": 1,
+    "price_increase_threshold": 1.01,
     "price_decrease_threshold": 0.9,
     "token_rating_threshold": 50,
-    "demo_mode": false
+    "demo_mode": true,
+    "simulate_pump_mode": false
 }

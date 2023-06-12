@@ -142,9 +142,9 @@ class SubgraphManager:
             pools.append(pool)
         return pools
 
-    def get_pools_with_native_token(self, past_time, min_liquidity_usd, min_volume_usd):
-        max_liquidity_usd = 1000000
-
+    def get_pools_with_native_token(
+        self, past_time, min_liquidity_usd, max_liquidity_usd, min_volume_usd
+    ):
         subgraph_type = self.blockchain_manager.get_current_chain().graph_type
         # query_template = self.get_query_template(subgraph_type)
 

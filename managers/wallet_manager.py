@@ -27,6 +27,12 @@ class WalletManager:
         self.demo_mode = demo_mode
         self.demo_balances = self.load_demo_balances(reset_userdata_on_load)
 
+    def get_native_token_balance_percentage(self, percentage):
+        balance = self.get_token_balance(
+            self.blockchain_manager.current_native_token_address.lower()
+        )
+        return int(balance * percentage)
+
     def get_demo_mode_tokens(self):
         current_chain_name = self.blockchain_manager.get_current_chain().name
         return self.demo_balances[current_chain_name]["tokens"]

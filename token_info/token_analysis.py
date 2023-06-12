@@ -15,16 +15,24 @@ from web3 import Web3
 from defi.protocol_manager import ProtocolManager
 from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
+from managers.wallet_manager import WalletManager
 from utils import get_percentage_from_string
 
 
 class TokenAnalysis:
-    def __init__(self, data_manager, blockchain_manager, defiprotocol_manager):
+    def __init__(
+        self,
+        data_manager,
+        blockchain_manager,
+        protocol_manager,
+        wallet_manager: WalletManager,
+    ):
         self.data_manager: DataManagement = data_manager
         self.blockchain_manager: BlockchainManager = blockchain_manager
-        self.protocol_manager: ProtocolManager = defiprotocol_manager
+        self.protocol_manager: ProtocolManager = protocol_manager
         self.token_score_cache = {}
         self.lock = asyncio.Lock()  # Add a lock
+        self.wallet_manager = wallet_manager
         # self.load_token_score_cache()
 
     async def load_token_score_cache(self):
@@ -79,7 +87,9 @@ class TokenAnalysis:
         short_name = selected_chain.short_name
 
         options = uc.ChromeOptions()
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
 
         driver = uc.Chrome(options=options)
         url = f"https://tokensniffer.com/token/{short_name}/{token_address}"
@@ -195,11 +205,16 @@ class TokenAnalysis:
         )
 
     async def is_token_price_increase(self, token_address, fee, pool_address):
+        trade_amount = int(
+            self.wallet_manager.get_native_token_balance_percentage(
+                self.data_manager.config["trade_amount_percentage"]
+            )
+        )
         try:
             print("starting is_token_price_increase start_amount")
             start_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
-                self.data_manager.config["trade_amount_min"],
+                trade_amount,
                 fee,
             )
 
@@ -208,7 +223,7 @@ class TokenAnalysis:
             print("starting is_token_price_increase end_amount")
             end_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
-                self.data_manager.config["trade_amount_min"],
+                trade_amount,
                 fee,
             )
 

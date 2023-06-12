@@ -1,5 +1,9 @@
+aiofiles==23.1.0
 beautifulsoup4==4.12.2
+eth_typing==3.3.0
+PyAutoGUI==0.9.53
 python-dotenv==1.0.0
-Requests==2.30.0
+Requests==2.31.0
+selenium==4.10.0
 undetected_chromedriver==3.4.7
 web3==6.3.0

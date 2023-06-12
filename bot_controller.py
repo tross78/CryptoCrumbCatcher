@@ -26,11 +26,13 @@ class BotController:
 
         self.demo_mode = self.data_manager.config["demo_mode"]
 
+        self.simulate_pump_mode = self.data_manager.config["simulate_pump_mode"]
+
         self.blockchain_manager: BlockchainManager = BlockchainManager(
             user_selected_chain
         )
         self.protocol_manager: ProtocolManager = ProtocolManager(
-            self.blockchain_manager, self.demo_mode
+            self.blockchain_manager, self.demo_mode, self.simulate_pump_mode
         )
 
         self.wallet_manager: WalletManager = WalletManager(
@@ -45,7 +47,10 @@ class BotController:
             reset_userdata_on_load,
         )
         self.token_analysis: TokenAnalysis = TokenAnalysis(
-            self.data_manager, self.blockchain_manager, self.protocol_manager
+            self.data_manager,
+            self.blockchain_manager,
+            self.protocol_manager,
+            self.wallet_manager,
         )
 
         self.trade_executor: TradeExecutor = TradeExecutor(

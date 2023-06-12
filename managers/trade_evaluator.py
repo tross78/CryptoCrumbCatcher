@@ -46,11 +46,6 @@ class TradeEvaluator:
     def calculate_roi_multiplier(
         self, potential_trade: PotentialTrade, trade_data: TradeData
     ):
-        if (
-            potential_trade.token_address
-            == "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79"
-        ):
-            abc = "abc"
         orig_investment = Decimal(trade_data.original_investment_eth)
         # selling to ETH will cost some ETH (fees, slippage)
         net_amount, costs = self.calculate_net_amount_and_costs(

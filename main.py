@@ -51,30 +51,30 @@ async def main(selected_chain):
             factory_contract = bot_controller.blockchain_manager.get_dex_contract()
             all_tasks = set()
 
-            # new_tokens = await get_new_tokens(bot_controller, factory_contract)
+            new_tokens = await get_new_tokens(bot_controller, factory_contract)
 
-            # logging.info(f"New tokens: {new_tokens}")
+            logging.info(f"New tokens: {new_tokens}")
 
-            # (
-            #     price_check_tasks,
-            #     tokens_with_check_tasks,
-            # ) = await token_status_manager.create_token_check_tasks(new_tokens)
+            (
+                price_check_tasks,
+                tokens_with_check_tasks,
+            ) = await token_status_manager.create_token_check_tasks(new_tokens)
 
-            # logging.info(f"Price check tasks: {price_check_tasks}")
-            # logging.info(f"Tokens with check tasks: {tokens_with_check_tasks}")
+            logging.info(f"Price check tasks: {price_check_tasks}")
+            logging.info(f"Tokens with check tasks: {tokens_with_check_tasks}")
 
-            # tasks_only = [task for task, _, _, _ in price_check_tasks]
-            # all_tasks.update(tasks_only)
-            # # Wait for all price check tasks to complete
-            # results = await asyncio.gather(*tasks_only, return_exceptions=True)
+            tasks_only = [task for task, _, _, _ in price_check_tasks]
+            all_tasks.update(tasks_only)
+            # Wait for all price check tasks to complete
+            results = await asyncio.gather(*tasks_only, return_exceptions=True)
 
-            # for task_result in results:
-            #     if isinstance(task_result, Exception):
-            #         logging.error(f"Error in price check task: {task_result}")
-            #     else:
-            #         logging.info(f"Successful task result: {task_result}")
+            for task_result in results:
+                if isinstance(task_result, Exception):
+                    logging.error(f"Error in price check task: {task_result}")
+                else:
+                    logging.info(f"Successful task result: {task_result}")
 
-            # all_tasks.add(asyncio.create_task(watchlist.update(price_check_tasks)))
+            all_tasks.add(asyncio.create_task(watchlist.update(price_check_tasks)))
 
             monitor_trades_task = asyncio.create_task(
                 bot_controller.trade_manager.monitor_trades(watchlist)
@@ -120,13 +120,14 @@ async def get_new_tokens(bot_controller: BotController, factory_contract):
 
     # Calculate Volume
     min_volume_usd = int(
-        bot_controller.data_manager.config["liquidity_usd"] / tvl_to_volume_ratio
+        bot_controller.data_manager.config["min_liquidity_usd"] / tvl_to_volume_ratio
     )
 
     new_tokens = await bot_controller.protocol_manager.get_tokens(
         factory_contract,
         bot_controller.data_manager.config["max_created_threshold"],
-        bot_controller.data_manager.config["liquidity_usd"],
+        bot_controller.data_manager.config["min_liquidity_usd"],
+        bot_controller.data_manager.config["max_liquidity_usd"],
         min_volume_usd,
     )
     # logging.info(f'###GETTING NEW TOKENS###: {new_tokens}')

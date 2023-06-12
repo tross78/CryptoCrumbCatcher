@@ -47,9 +47,13 @@ class TradeController:
         self.protocol_manager: ProtocolManager = protocol_manager
 
     async def monitor_trades(self, watchlist):
-        wallet_balance_native = self.wallet_manager.get_native_token_balance()
+        # trade_amount = int(
+        #     wallet_balance_native * self.data_manager.config["trade_amount_percent"]
+        # )
         trade_amount = int(
-            wallet_balance_native * self.data_manager.config["trade_amount_percent"]
+            self.wallet_manager.get_native_token_balance_percentage(
+                self.data_manager.config["trade_amount_percentage"]
+            )
         )
         await self.buy_increasing_tokens_from_watchlist(
             trade_amount,
@@ -75,7 +79,7 @@ class TradeController:
 
     async def buy_increasing_tokens_from_watchlist(
         self,
-        native_token_trade_amount_min,
+        native_token_trade_amount,
         watchlist: TokenWatchlist,
     ):
         # Create a copy of the watchlist
@@ -96,7 +100,7 @@ class TradeController:
                 potential_trade.token_address, potential_trade.pool_address
             ):
                 should_continue_watching = await self.process_increasing_token(
-                    potential_trade, native_token_trade_amount_min
+                    potential_trade, native_token_trade_amount
                 )
                 # Remove the token from watchlist if it should no longer be watched
                 if not should_continue_watching:
@@ -111,7 +115,7 @@ class TradeController:
     async def process_increasing_token(
         self,
         potential_trade: PotentialTrade,
-        native_token_trade_amount_min,
+        native_token_trade_amount,
     ):
         logging.info(
             f"processing increasing token: watchlist token {potential_trade.token_address}"
@@ -120,7 +124,7 @@ class TradeController:
         # amount of tokens given for a amount of ETH
         current_token_amount = await self.protocol_manager.get_min_token_for_native(
             potential_trade.token_address,
-            self.data_manager.config["trade_amount_min"],
+            native_token_trade_amount,
             potential_trade.fee,
         )
 
@@ -147,9 +151,9 @@ class TradeController:
         if current_token_amount < threshold_token_amount:  # less tokens; more valuable
             trade_data_buy = TradeData(
                 trade_type=TradeType.BUY,
-                input_amount=native_token_trade_amount_min,  # eg. 0.01 ETH
+                input_amount=native_token_trade_amount,  # eg. 0.01 ETH
                 expected_amount=None,  # to be calculated later
-                original_investment_eth=native_token_trade_amount_min,
+                original_investment_eth=native_token_trade_amount,
             )
 
             await self.trade_increasing_token(potential_trade, trade_data_buy)
@@ -221,9 +225,9 @@ class TradeController:
     ):
         logging.info("process_decreasing_token: start")
         # process the token prices for demo mode
-        await self.protocol_manager.get_min_token_for_native(
+        current_token_amount = await self.protocol_manager.get_min_token_for_native(
             potential_trade.token_address,
-            self.data_manager.config["trade_amount_min"],
+            trade_data.original_investment_eth,
             potential_trade.fee,
         )
 
@@ -262,6 +266,12 @@ class TradeController:
             < self.token_analysis.data_manager.config["price_decrease_threshold"]
         )
 
+        logging.info(
+            f"Selling decreasing tokens: current_price: {current_token_amount}, \
+                trade_data.original_investment_eth:{trade_data.original_investment_eth}, current_roi_multiplier: {current_roi_multiplier}, \
+                    expected_multiplier:{expected_roi_multiplier} trade_data.expected_amount: {trade_data.expected_amount}"
+        )
+
         # if self.blockchain_manager.get_current_chain().name == "goerli_testnet":
         #     has_reached_roi_or_decreased = True
 
@@ -298,7 +308,10 @@ class TradeController:
             return  # or raise an exception, return an error code, or take appropriate action
 
         if self.trade_evaluator.has_balance_for_trade(
-            potential_trade.token_address, trade_data.expected_amount, TradeAction.SELL
+            # input = tokens to trade for ETH in your wallet
+            potential_trade.token_address,
+            trade_data.input_amount,
+            TradeAction.SELL,
         ):
             await self.trade_executor.trade_token(
                 potential_trade,

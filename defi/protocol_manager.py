@@ -19,11 +19,17 @@ class ProtocolManager:
     MAX_RETRIES = 3
     RETRY_DELAY = 1  # Delay between retry attempts in seconds
 
-    def __init__(self, blockchain_manager: BlockchainManager, demo_mode: True):
+    def __init__(
+        self,
+        blockchain_manager: BlockchainManager,
+        demo_mode: True,
+        simulate_pump_mode: False,
+    ):
         self.stablecoin_tokens = self.load_stablecoin_data()
         self.subgraph_manager = SubgraphManager(blockchain_manager)
         self.blockchain_manager: BlockchainManager = blockchain_manager
         self.demo_mode = demo_mode
+        self.simulate_pump_mode = simulate_pump_mode
         uniswap_client = Uniswap(
             address=self.blockchain_manager.get_wallet_address(),
             private_key=self.blockchain_manager.get_wallet_private_key(),
@@ -31,7 +37,7 @@ class ProtocolManager:
         )
 
         uniswap_client.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
-        if demo_mode:
+        if simulate_pump_mode:
             self.dex_client_wrapper = SimulatedDexClientWrapper(
                 uniswap_client,
                 self.blockchain_manager,
@@ -93,6 +99,7 @@ class ProtocolManager:
         factory_contract,
         past_time_hours=3,
         min_liquidity_usd=1,
+        max_liquidity_usd=100000,
         min_volume_usd=5000,
     ):
         logging.info("Trying to get new tokens here:")
@@ -108,7 +115,7 @@ class ProtocolManager:
             pools_with_native_token: List[
                 Pool
             ] = self.subgraph_manager.get_pools_with_native_token(
-                past_time, min_liquidity_usd, min_volume_usd
+                past_time, min_liquidity_usd, max_liquidity_usd, min_volume_usd
             )
 
             new_token_addresses = []

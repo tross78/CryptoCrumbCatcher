@@ -9,7 +9,7 @@
     "profit_margin": 0.05,
     "monitor_timeframe": 15,
     "price_increase_threshold": 1.03,
-    "price_decrease_threshold": 0.95,
+    "price_decrease_threshold": 0.9,
     "token_rating_threshold": 50,
     "demo_mode": true,
     "simulate_pump_mode": false

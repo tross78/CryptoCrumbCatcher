@@ -17,7 +17,7 @@ load_dotenv(dotenv_path)
 
 
 class BotController:
-    MAX_TOKENS_MONITORED = 5
+    MAX_TOKENS_MONITORED = 50
 
     def __init__(
         self, data_manager, user_selected_chain=None, reset_userdata_on_load=True

@@ -59,25 +59,14 @@ class TokenWatchlist:
     async def add(self, token_address, fee, pool_address, token_base_value):
         if len(self.tokens) < self.max_tokens:
             current_chain = self.blockchain_manager.get_current_chain().name
+
             if (
                 not self.is_duplicate(token_address, pool_address)
                 and len(self.tokens.get(current_chain, {})) < self.max_tokens
+                and token_base_value > 0  # weeds out errored price calls
             ):
-                gas_limit_per_transaction = (
-                    self.blockchain_manager.gas_limit_per_transaction
-                )
-                # Get the current gas price in Gwei
-                gas_price_wei = self.blockchain_manager.web3_instance.eth.gas_price
-                total_transaction_gas_price_wei = (
-                    gas_price_wei * gas_limit_per_transaction * 2
-                )
-
                 token_pool_id = f"{token_address.lower()}_{pool_address.lower()}"
-                if (
-                    current_chain not in self.tokens
-                    and token_base_value
-                    > total_transaction_gas_price_wei  # weeds out errored price calls
-                ):
+                if current_chain not in self.tokens:
                     self.tokens[current_chain] = {}
                     # add token dict
                 self.tokens[current_chain][token_pool_id] = {

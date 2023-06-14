@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from enum import Enum
+from itertools import cycle
 
 from dotenv import load_dotenv
 from web3 import Web3
@@ -28,13 +29,8 @@ class BlockchainManager:
         self.current_native_token_address = self.current_chain.native_token_address
         short_name = self.current_chain.short_name.upper()
         provider_urls = json.loads(os.environ[f"{short_name}_PROVIDER_URLS"])
-        provider_url = provider_urls[0]
-        os.environ["PROVIDER"] = provider_url
-        self.web3_instance: Web3 = Web3(Web3.HTTPProvider(provider_url))
-        self.web3_instance.middleware_onion.inject(
-            geth_poa_middleware, layer=0
-        )  # Required for some Ethereum networks
-
+        self.provider_urls = cycle(provider_urls)
+        self.set_provider()
         # Initialize factory contract
         self.wallet_private_key = os.environ["WALLET_PRIVATE_KEY"]
         self.main_account = self.web3_instance.eth.account.from_key(
@@ -42,6 +38,14 @@ class BlockchainManager:
         )
         self.wallet_address = self.main_account.address
         self.gas_limit_per_transaction = 150000  # example gas limit
+
+    def set_provider(self):
+        provider_url = next(self.provider_urls)
+        os.environ["PROVIDER"] = provider_url
+        self.web3_instance: Web3 = Web3(Web3.HTTPProvider(provider_url))
+        self.web3_instance.middleware_onion.inject(
+            geth_poa_middleware, layer=0
+        )  # Required for some Ethereum networks
 
     def get_wallet_address(self):
         return self.wallet_address

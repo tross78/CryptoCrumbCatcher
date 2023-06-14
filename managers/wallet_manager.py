@@ -6,12 +6,6 @@ from web3 import Web3
 from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
 
-logging.basicConfig(
-    filename="trade.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-
 
 class WalletManager:
     def __init__(

@@ -6,6 +6,7 @@ from decimal import Decimal
 
 import aiofiles
 import pyautogui
+import requests
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.action_chains import ActionChains
@@ -36,6 +37,19 @@ class TokenAnalysis:
         # self.load_token_score_cache()
 
     async def load_token_score_cache(self):
+        if self.data_manager.config["enable_tokensniffer_scraping"]:
+            await self.load_token_score_cache_local()
+        else:
+            await self.load_token_score_cache_remote()
+
+    async def load_token_score_cache_remote(self):
+        response = requests.get(
+            "https://raw.githubusercontent.com/tross78/CryptoCrumbCatcher/main/data/tokensniffer_cache.json",
+            timeout=30,
+        )
+        self.token_score_cache = json.loads(response.text)
+
+    async def load_token_score_cache_local(self):
         try:
             async with aiofiles.open("data/tokensniffer_cache.json", "r") as json_file:
                 self.token_score_cache = json.loads(await json_file.read())
@@ -77,19 +91,25 @@ class TokenAnalysis:
         return False
 
     async def check_token_score(self, token_address):
-        selected_chain = self.blockchain_manager.get_current_chain()
-        # logging.info(f'getting token score for : {token_address}')
         token_score = self.get_token_score_from_cache(token_address)
         if token_score is not False:
             return token_score
+        enable_tokensniffer_scraping = self.data_manager.config[
+            "enable_tokensniffer_scraping"
+        ]
+        if enable_tokensniffer_scraping:
+            return self.scrape_tokensniffer_score(token_address)
 
-        # logging.info('getting token score from tokensniffer')
+        return 0
+
+    async def scrape_tokensniffer_score(self, token_address):
+        selected_chain = self.blockchain_manager.get_current_chain()
         short_name = selected_chain.short_name
 
         options = uc.ChromeOptions()
-        options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
+        # options.add_argument("--headless")
+        # options.add_argument("--no-sandbox")
+        # options.add_argument("--disable-dev-shm-usage")
 
         driver = uc.Chrome(options=options)
         url = f"https://tokensniffer.com/token/{short_name}/{token_address}"

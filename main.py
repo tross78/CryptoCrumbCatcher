@@ -8,7 +8,7 @@ from models.chain_constants import SelectedChain
 from token_info.token_watchlist import TokenWatchlist
 
 logging.basicConfig(
-    filename="app.log",
+    filename="trade.log",
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
@@ -103,6 +103,7 @@ async def main(selected_chain):
             logging.exception(f"Error in main loop: {error}", exc_info=True)
 
         await asyncio.sleep(60)
+        bot_controller.blockchain_manager.set_provider()
 
 
 def initialize_bot_controller(selected_chain):

@@ -14,12 +14,6 @@ from token_info.token_analysis import TokenAnalysis
 from token_info.token_monitor import TokenMonitor
 from token_info.token_watchlist import TokenWatchlist
 
-logging.basicConfig(
-    filename="trade.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-
 
 class TradeController:
     def __init__(
@@ -127,6 +121,30 @@ class TradeController:
             native_token_trade_amount,
             potential_trade.fee,
         )
+
+        gas_limit_per_transaction = self.blockchain_manager.gas_limit_per_transaction
+        # Get the current gas price in Gwei
+        gas_price_wei = self.blockchain_manager.web3_instance.eth.gas_price
+        gas_cost_per_transaction_wei = gas_price_wei * gas_limit_per_transaction
+
+        # Avoid ZeroDivisionError
+        if native_token_trade_amount == 0:
+            print("Native token trade amount is zero, aborting.")
+            return
+
+        gas_percentage_of_trade = float(gas_cost_per_transaction_wei) / float(
+            native_token_trade_amount
+        )
+
+        gas_cost_trade_threshold = float(
+            self.data_manager.config["gas_cost_trade_threshold"]
+        )
+
+        if gas_percentage_of_trade > gas_cost_trade_threshold:
+            print(
+                f"Gas cost exceeds { gas_cost_trade_threshold * 100}% of trade amount, aborting."
+            )
+            return
 
         # Check if token amount is negative or invalid, -1 is invalid or error
         if current_token_amount < 0:

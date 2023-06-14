@@ -5,8 +5,6 @@ import time
 from decimal import Decimal
 
 import aiofiles
-import pyautogui
-import requests
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.action_chains import ActionChains
@@ -168,15 +166,15 @@ class TokenAnalysis:
         driver.switch_to.frame(iframe)
 
         # get the current mouse position
-        start_x, start_y = pyautogui.position()  # replace with actual method
+        # start_x, start_y = pyautogui.position()  # replace with actual method
 
-        # Move the mouse with pyautogui
-        steps = 100
-        step_x = (end_x_abs - start_x) / steps
-        step_y = (end_y_abs - start_y) / steps
-        for i in range(steps):
-            pyautogui.moveTo(start_x + i * step_x, start_y + i * step_y, duration=0.01)
-            time.sleep(0.01)  # adjust delay for smoother motion
+        # # Move the mouse with pyautogui
+        # steps = 100
+        # step_x = (end_x_abs - start_x) / steps
+        # step_y = (end_y_abs - start_y) / steps
+        # for i in range(steps):
+        #     pyautogui.moveTo(start_x + i * step_x, start_y + i * step_y, duration=0.01)
+        #     time.sleep(0.01)  # adjust delay for smoother motion
 
         # switch back to the default_content
         driver.switch_to.default_content()

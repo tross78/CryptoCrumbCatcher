@@ -60,7 +60,7 @@ class TradeController:
         monitored_tokens = self.token_monitor.get_monitored_tokens()
 
         for token_pool_id, obj in monitored_tokens.items():
-            logging.info(f"Type of obj: {type(obj)}")  # Check the type of obj
+            # logging.info(f"Type of obj: {type(obj)}")  # Check the type of obj
             if not isinstance(obj, dict):
                 logging.warning(f"obj is not a dictionary: {obj}")
                 continue

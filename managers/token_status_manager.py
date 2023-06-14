@@ -37,7 +37,7 @@ class TokenStatusManager:
             # Creates a unique identifier for each token by concatenating token address and pool address
             token_pool_id = f"{token_address}_{pool_address}"
 
-            logging.info(f"Processing token: {token_pool_id}")
+            # logging.info(f"Processing token: {token_pool_id}")
 
             # Checks if the token is already being monitored, if so it skips to the next token
             if token_pool_id in self.token_monitor.get_monitored_tokens():
@@ -50,9 +50,9 @@ class TokenStatusManager:
             )
             token_has_no_task = token_pool_id not in self.tokens_with_tasks
 
-            logging.info(
-                f"Token passes muster: {token_passes_muster}, Token has no task: {token_has_no_task}"
-            )
+            # logging.info(
+            #     f"Token passes muster: {token_passes_muster}, Token has no task: {token_has_no_task}"
+            # )
 
             # If the token has no exploits and is not being monitored, it creates a task to check if the token's price is increasing
             if token_passes_muster and token_has_no_task:
@@ -66,9 +66,9 @@ class TokenStatusManager:
                 self.tasks.append((task, token_address, fee, pool_address))
                 self.tokens_with_tasks.add(token_pool_id)
 
-                logging.info(
-                    f"Created price increase check task for token {token_address} in pool {pool_address}."
-                )
+                # logging.info(
+                #     f"Created price increase check task for token {token_address} in pool {pool_address}."
+                # )
 
                 # Sleeps for 5 seconds after creating each task
                 await asyncio.sleep(5)

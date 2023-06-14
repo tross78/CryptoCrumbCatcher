@@ -5,6 +5,7 @@ import time
 from decimal import Decimal
 
 import aiofiles
+import requests
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.action_chains import ActionChains

@@ -12,7 +12,7 @@
     "price_increase_threshold": 1.01,
     "price_decrease_threshold": 0.9,
     "token_rating_threshold": 20,
-    "enable_tokensniffer_scraping": false,
+    "enable_tokensniffer_scraping": true,
     "demo_mode": true,
     "simulate_pump_mode": false
 }

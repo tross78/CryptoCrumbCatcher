@@ -97,7 +97,8 @@ class TokenAnalysis:
             "enable_tokensniffer_scraping"
         ]
         if enable_tokensniffer_scraping:
-            return self.scrape_tokensniffer_score(token_address)
+            token_score = await self.scrape_tokensniffer_score(token_address)
+            return token_score
 
         return 0
 

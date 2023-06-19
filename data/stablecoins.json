@@ -68,6 +68,43 @@
             "address": "0x9d2f299715d94d8a7e6f5eaa8e654e8c74a988a7"
         }
     },
+    "bsc_mainnet": {
+        "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56": {
+            "token_name": "Binance-Peg BUSD Token",
+            "token_symbol": "BUSD",
+            "address": "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
+        },
+        "0x55d398326f99059fF775485246999027B3197955": {
+            "token_name": "Binance-Peg BSC-USD",
+            "token_symbol": "BSC-USD",
+            "address": "0x55d398326f99059fF775485246999027B3197955"
+        },
+        "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d": {
+            "token_name": "USDC",
+            "token_symbol": "USDC",
+            "address": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
+        },
+        "0x2170Ed0880ac9A755fd29B2688956BD959F933F8": {
+            "token_name": "Binance-Peg Ethereum Token",
+            "token_symbol": "ETH",
+            "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8"
+        },
+        "0x250632378E573c6Be1AC2f97Fcdf00515d0Aa91B": {
+            "token_name": "Binance Beacon ETH",
+            "token_symbol": "BETH",
+            "address": "0x2170Ed0880ac9A755fd29B2688956BD959F933F8"
+        },
+        "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3": {
+            "token_name": "Binance-Peg Dai Token",
+            "token_symbol": "DAI",
+            "address": "0x1AF3F329e8BE154074D8769D1FFa4eE058B1DBc3"
+        },
+        "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c": {
+            "token_name": "Binance-Peg BTCB Tokenn",
+            "token_symbol": "BTCB",
+            "address": "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c"
+        }
+    },
     "goerli_testnet": {
         "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48": {
             "token_name": "USDC",

@@ -5,7 +5,7 @@
     orderDirection: desc
     where: {
       token0: "$token0_address"
-      createdAtTimestamp_gte: "$past_time"
+      # createdAtTimestamp_gte: "$past_time"
       totalValueLockedUSD_gt: $min_liquidity_usd
       totalValueLockedUSD_lt: $max_liquidity_usd
       volumeUSD_gt: $min_volume_usd
@@ -33,7 +33,7 @@
     orderDirection: desc
     where: {
       token1: "$token1_address"
-      createdAtTimestamp_gte: "$past_time"
+      # createdAtTimestamp_gte: "$past_time"
       totalValueLockedUSD_gt: $min_liquidity_usd
       volumeUSD_gt: $min_volume_usd
     }

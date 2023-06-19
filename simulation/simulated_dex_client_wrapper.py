@@ -1,16 +1,15 @@
 import asyncio
 import datetime
 import json
-import logging
 import time
 from datetime import datetime, timedelta
 
-from defi.dex_client_wrapper import DexClientWrapper
+from logger_config import logger
 
 
-class SimulatedDexClientWrapper(DexClientWrapper):
-    def __init__(self, dex_client, blockchain_manager):
-        super().__init__(dex_client)
+class SimulatedDexClientWrapper:
+    def __init__(self, client, blockchain_manager):
+        self.client = client
         self.lock = asyncio.Lock()  # Add a lock
         self.pump_tokens = []
 
@@ -18,7 +17,7 @@ class SimulatedDexClientWrapper(DexClientWrapper):
         async with self.lock:  # Lock the method
             with open("simulation/pump_token.json", "r") as json_file:
                 self.pump_tokens = json.load(json_file)
-        logging.info(
+        logger.info(
             f"Lock released after attempting to load data for SimulatedDexClientWrapper"
         )
 
@@ -26,7 +25,7 @@ class SimulatedDexClientWrapper(DexClientWrapper):
         async with self.lock:  # Lock the method
             with open("simulation/pump_token.json", "w") as json_file:
                 json.dump(self.pump_tokens, json_file)
-        logging.info(
+        logger.info(
             f"Lock released after attempting to save data for SimulatedDexClientWrapper"
         )
 
@@ -34,7 +33,7 @@ class SimulatedDexClientWrapper(DexClientWrapper):
     async def get_price_input(self, token_in, token_out, token_trade_amount, fee):
         # Fetch the actual price input using the dex_client
         await self.load_data()
-        result = await super().get_price_input(
+        result = await self.client.get_price_input(
             token_in, token_out, token_trade_amount, fee
         )
 
@@ -47,9 +46,9 @@ class SimulatedDexClientWrapper(DexClientWrapper):
                     current_price = token.get("current_price", initial_price)
                     multiplier = initial_price / current_price
 
-                    logging.info(f"Simulated get_price_input multiplier {multiplier}")
+                    logger.info(f"Simulated get_price_input multiplier {multiplier}")
                     new_value = round(result * multiplier)
-                    logging.info(
+                    logger.info(
                         f"Simulated get_price_output decreased value {new_value}"
                     )
                     formatted_value = "{:.0f}".format(new_value)
@@ -67,10 +66,10 @@ class SimulatedDexClientWrapper(DexClientWrapper):
     async def get_price_output(self, token_in, token_out, token_trade_amount, fee):
         # Fetch the actual price output using the dex_client
         await self.load_data()
-        result = await super().get_price_output(
+        result = await self.client.get_price_output(
             token_in, token_out, token_trade_amount, fee
         )
-        logging.info(
+        logger.info(
             f"Simulated get_price_output for token {token_in}: initial token amount for native token: {result} (more means less valuable)"
         )
 
@@ -103,7 +102,7 @@ class SimulatedDexClientWrapper(DexClientWrapper):
                     token["pumped_at"] = five_minutes_ago.timestamp()
                     print(f"Set pumped_at to: {token['pumped_at']}")
         await self.save_data()  # Save the updated pump_tokens data
-        logging.info(
+        logger.info(
             f"Simulated get_price_output for token {token_in}: new amount for native token: {result} (less means more valuable)"
         )
         return result

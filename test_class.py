@@ -1,4 +1,4 @@
-import logging
+from logger_config import logger
 from decimal import Decimal
 
 from defi.protocol_manager import ProtocolManager

@@ -1,4 +1,4 @@
-import logging
+from logger_config import logger
 from decimal import Decimal
 
 from defi.protocol_manager import ProtocolManager
@@ -55,7 +55,7 @@ class TradeEvaluator:
         expected_roi_value = (orig_investment + costs) * desired_profit_percentage
         expected_roi_multiplier = expected_roi_value / orig_investment
 
-        logging.info(
+        logger.info(
             f"Initial investment: {orig_investment} \
                 Net amount: {net_amount} \
                 Costs: {costs} \
@@ -76,14 +76,14 @@ class TradeEvaluator:
             native_token_balance = self.wallet_manager.get_native_token_balance()
             needed_token_balance = trade_amount + gas_fee
             if native_token_balance < needed_token_balance:
-                logging.info(
+                logger.info(
                     f"Not enough Native Token balance {native_token_balance} to make the trade. Need {needed_token_balance}"
                 )
                 return False
         elif action == TradeAction.SELL:
             token_balance = self.wallet_manager.get_token_balance(token_address)
             if token_balance < trade_amount:
-                logging.info(
+                logger.info(
                     f"Not enough {token_address} tokens balance to make the trade. Have {token_balance} need {trade_amount}"
                 )
                 return False

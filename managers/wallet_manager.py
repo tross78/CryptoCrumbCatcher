@@ -1,8 +1,10 @@
+import asyncio
 import json
-import logging
 
+import aiofiles
 from web3 import Web3
 
+from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
 
@@ -20,6 +22,7 @@ class WalletManager:
         self.data_manager: DataManagement = data_manager
         self.demo_mode = demo_mode
         self.demo_balances = self.load_demo_balances(reset_userdata_on_load)
+        self.lock = asyncio.Lock()  # Add a lock
 
     def get_native_token_balance_percentage(self, percentage):
         balance = self.get_token_balance(
@@ -54,26 +57,28 @@ class WalletManager:
         )
         return balance
 
-    def set_native_token_balance(self, token_amount):
-        selected_chain = self.blockchain_manager.get_current_chain()
-        self.demo_balances[selected_chain.name]["tokens"][
-            self.blockchain_manager.current_native_token_address.lower()
-        ] = token_amount
-        self.save_demo_balances(self.demo_balances)
+    async def set_native_token_balance(self, token_amount):
+        async with self.lock:  # Lock the method
+            selected_chain = self.blockchain_manager.get_current_chain()
+            self.demo_balances[selected_chain.name]["tokens"][
+                self.blockchain_manager.current_native_token_address.lower()
+            ] = token_amount
+            await self.save_demo_balances(self.demo_balances)
 
-    def set_token_balance(self, token_address, balance):
-        if self.demo_mode:
-            current_chain_name = self.blockchain_manager.get_current_chain().name
-            self.demo_balances[current_chain_name]["tokens"][
-                token_address.lower()
-            ] = balance
-            if balance == 0:
-                del self.demo_balances[current_chain_name]["tokens"][
+    async def set_token_balance(self, token_address, balance):
+        async with self.lock:  # Lock the method
+            if self.demo_mode:
+                current_chain_name = self.blockchain_manager.get_current_chain().name
+                self.demo_balances[current_chain_name]["tokens"][
                     token_address.lower()
-                ]
-            self.save_demo_balances(self.demo_balances)
-        else:
-            raise Exception("Can't manually set balance in non-demo mode")
+                ] = balance
+                if balance == 0:
+                    del self.demo_balances[current_chain_name]["tokens"][
+                        token_address.lower()
+                    ]
+                await self.save_demo_balances(self.demo_balances)
+            else:
+                raise Exception("Can't manually set balance in non-demo mode")
 
     def load_demo_balances(self, start_fresh):
         if start_fresh:
@@ -94,11 +99,12 @@ class WalletManager:
                     }
                 },
             }
-            self.save_demo_balances(data)
-
+            with open("data/demo_balance.json", "w") as json_file:
+                json.dump(data, json_file)
         with open("data/demo_balance.json", "r") as json_file:
             return json.load(json_file)
 
-    def save_demo_balances(self, demo_balances):
-        with open("data/demo_balance.json", "w") as json_file:
-            json.dump(demo_balances, json_file)
+    async def save_demo_balances(self, demo_balances):
+        async with self.lock:  # Lock the method
+            async with aiofiles.open("data/demo_balance.json", "w") as json_file:
+                await json_file.write(json.dumps(demo_balances))

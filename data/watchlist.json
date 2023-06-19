@@ -1,1 +1,78 @@
-{"arbitrum_mainnet": {"0xdc8184ba488e949815d4aafb35b3c56ad03b4179_0xa843ef513877a3cec495ee88292acd7b59821c05": {"token_address": "0xdc8184ba488e949815d4aafb35b3c56ad03b4179", "fee": 3000, "pool_address": "0xa843ef513877a3cec495ee88292acd7b59821c05", "token_base_value": 7221251065948056251814}, "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79_0x3f79be87cb3fff4003a911d8337df9197593e41a": {"token_address": "0xeca66820ed807c096e1bd7a1a091cd3d3152cc79", "fee": 10000, "pool_address": "0x3f79be87cb3fff4003a911d8337df9197593e41a", "token_base_value": 3714797726487476881}, "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d_0xaf1f6c3485ad1f1640267c402d3f2bf54c0b8dd0": {"token_address": "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d", "fee": 3000, "pool_address": "0xaf1f6c3485ad1f1640267c402d3f2bf54c0b8dd0", "token_base_value": 161648787609519087}, "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d_0xe91b274fe3d23c0ed31066a66fb09447e6645ece": {"token_address": "0x1d987200df3b744cfa9c14f713f5334cb4bc4d5d", "fee": 10000, "pool_address": "0xe91b274fe3d23c0ed31066a66fb09447e6645ece", "token_base_value": 250947485714435831}, "0x09e18590e8f76b6cf471b3cd75fe1a1a9d2b2c2b_0x16933152994cb88a04e9bc3230806573c768978f": {"token_address": "0x09e18590e8f76b6cf471b3cd75fe1a1a9d2b2c2b", "fee": 3000, "pool_address": "0x16933152994cb88a04e9bc3230806573c768978f", "token_base_value": 1071208708768106915}, "0x09e18590e8f76b6cf471b3cd75fe1a1a9d2b2c2b_0x71414d79633910bbae5137e8dc152240db8cb5a0": {"token_address": "0x09e18590e8f76b6cf471b3cd75fe1a1a9d2b2c2b", "fee": 10000, "pool_address": "0x71414d79633910bbae5137e8dc152240db8cb5a0", "token_base_value": 1584785715501918703}, "0x912ce59144191c1204e64559fe8253a0e49e6548_0x89a4026e9ade251c67b7fb38054931a39936d9c5": {"token_address": "0x912ce59144191c1204e64559fe8253a0e49e6548", "fee": 100, "pool_address": "0x89a4026e9ade251c67b7fb38054931a39936d9c5", "token_base_value": 185227315329983015911}, "0x3082cc23568ea640225c2467653db90e9250aaa0_0x446bf9748b4ea044dd759d9b9311c70491df8f29": {"token_address": "0x3082cc23568ea640225c2467653db90e9250aaa0", "fee": 3000, "pool_address": "0x446bf9748b4ea044dd759d9b9311c70491df8f29", "token_base_value": 675762734676337985927}, "0x3082cc23568ea640225c2467653db90e9250aaa0_0xa8ba5f3ccfb8d2b7f4225e371cde11871e088933": {"token_address": "0x3082cc23568ea640225c2467653db90e9250aaa0", "fee": 10000, "pool_address": "0xa8ba5f3ccfb8d2b7f4225e371cde11871e088933", "token_base_value": 683250901495214501681}, "0x912ce59144191c1204e64559fe8253a0e49e6548_0x92fd143a8fa0c84e016c2765648b9733b0aa519e": {"token_address": "0x912ce59144191c1204e64559fe8253a0e49e6548", "fee": 10000, "pool_address": "0x92fd143a8fa0c84e016c2765648b9733b0aa519e", "token_base_value": 177342392921845418219}, "0x954ac1c73e16c77198e83c088ade88f6223f3d44_0x606bf2272ad1772667753bb68b51ec67b166c3f0": {"token_address": "0x954ac1c73e16c77198e83c088ade88f6223f3d44", "fee": 10000, "pool_address": "0x606bf2272ad1772667753bb68b51ec67b166c3f0", "token_base_value": 507664717325448328614}, "0xfc77b86f3ade71793e1eec1e7944db074922856e_0xce3dc36cd501c00f643a09f2c8d9b69fb941bb74": {"token_address": "0xfc77b86f3ade71793e1eec1e7944db074922856e", "fee": 10000, "pool_address": "0xce3dc36cd501c00f643a09f2c8d9b69fb941bb74", "token_base_value": 2154492023954495219}, "0x6694340fc020c5e6b96567843da2df01b2ce1eb6_0xa8bd646f72ea828ccbc40fa2976866884f883409": {"token_address": "0x6694340fc020c5e6b96567843da2df01b2ce1eb6", "fee": 3000, "pool_address": "0xa8bd646f72ea828ccbc40fa2976866884f883409", "token_base_value": 315967678083122896705}, "0x51318b7d00db7acc4026c88c3952b66278b6a67f_0xadfad8befdfd6d94f7cfbe22d6639c224a80d2b6": {"token_address": "0x51318b7d00db7acc4026c88c3952b66278b6a67f", "fee": 10000, "pool_address": "0xadfad8befdfd6d94f7cfbe22d6639c224a80d2b6", "token_base_value": 643726416428231696827}, "0x2cab3abfc1670d1a452df502e216a66883cdf079_0x475f876b51482cba85926ad079b6163668399376": {"token_address": "0x2cab3abfc1670d1a452df502e216a66883cdf079", "fee": 10000, "pool_address": "0x475f876b51482cba85926ad079b6163668399376", "token_base_value": 151050133511603609928610}, "0x289ba1701c2f088cf0faf8b3705246331cb8a839_0x4fd47e5102dfbf95541f64ed6fe13d4ed26d2546": {"token_address": "0x289ba1701c2f088cf0faf8b3705246331cb8a839", "fee": 3000, "pool_address": "0x4fd47e5102dfbf95541f64ed6fe13d4ed26d2546", "token_base_value": 45837289467677952213}, "0x539bde0d7dbd336b79148aa742883198bbf60342_0x59d72ddb29da32847a4665d08ffc8464a7185fae": {"token_address": "0x539bde0d7dbd336b79148aa742883198bbf60342", "fee": 3000, "pool_address": "0x59d72ddb29da32847a4665d08ffc8464a7185fae", "token_base_value": 250176816556643959176}, "0x539bde0d7dbd336b79148aa742883198bbf60342_0x7e7fb3cceca5f2ac952edf221fd2a9f62e411980": {"token_address": "0x539bde0d7dbd336b79148aa742883198bbf60342", "fee": 10000, "pool_address": "0x7e7fb3cceca5f2ac952edf221fd2a9f62e411980", "token_base_value": 251890585540724433543}, "0x32eb7902d4134bf98a28b963d26de779af92a212_0x310a09b51501d893988401fba75c47dc59f1b42a": {"token_address": "0x32eb7902d4134bf98a28b963d26de779af92a212", "fee": 10000, "pool_address": "0x310a09b51501d893988401fba75c47dc59f1b42a", "token_base_value": 10178133067332675541}, "0x6c2c06790b3e3e3c38e12ee22f8183b37a13ee55_0xb52781c275431bd48d290a4318e338fe0df89eb9": {"token_address": "0x6c2c06790b3e3e3c38e12ee22f8183b37a13ee55", "fee": 10000, "pool_address": "0xb52781c275431bd48d290a4318e338fe0df89eb9", "token_base_value": 1479520457200233986}, "0x11cdb42b0eb46d95f990bedd4695a6e3fa034978_0xba80cede54bf09f8160f7d6ad4a9d6ae3a9852d9": {"token_address": "0x11cdb42b0eb46d95f990bedd4695a6e3fa034978", "fee": 10000, "pool_address": "0xba80cede54bf09f8160f7d6ad4a9d6ae3a9852d9", "token_base_value": 273879409509654680751}, "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a_0x1aeedd3727a6431b8f070c0afaa81cc74f273882": {"token_address": "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a", "fee": 3000, "pool_address": "0x1aeedd3727a6431b8f070c0afaa81cc74f273882", "token_base_value": 3872186491192904937}, "0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0_0x929fcf81102c5577243ee614c2c455acd6681f1a": {"token_address": "0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0", "fee": 10000, "pool_address": "0x929fcf81102c5577243ee614c2c455acd6681f1a", "token_base_value": 42674355798311312653}, "0x4e352cf164e64adcbad318c3a1e222e9eba4ce42_0xdcc3ac7668d46f44434bf1ffe57a37e25ca3acf3": {"token_address": "0x4e352cf164e64adcbad318c3a1e222e9eba4ce42", "fee": 3000, "pool_address": "0xdcc3ac7668d46f44434bf1ffe57a37e25ca3acf3", "token_base_value": 15474024608537857135}, "0x11cdb42b0eb46d95f990bedd4695a6e3fa034978_0xa95b0f5a65a769d82ab4f3e82842e45b8bbaf101": {"token_address": "0x11cdb42b0eb46d95f990bedd4695a6e3fa034978", "fee": 3000, "pool_address": "0xa95b0f5a65a769d82ab4f3e82842e45b8bbaf101", "token_base_value": 271621810382347878739}, "0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0_0xc24f7d8e51a64dc1238880bd00bb961d54cbeb29": {"token_address": "0xfa7f8980b0f1e64a2062791cc3b0871572f1f7f0", "fee": 3000, "pool_address": "0xc24f7d8e51a64dc1238880bd00bb961d54cbeb29", "token_base_value": 40638051295240111847}, "0xb2498cde54810424a24fdd23579164265a0c14c5_0x83b43b0652cced8de54c4f941c97ecbb07fbfa01": {"token_address": "0xb2498cde54810424a24fdd23579164265a0c14c5", "fee": 3000, "pool_address": "0x83b43b0652cced8de54c4f941c97ecbb07fbfa01", "token_base_value": 374443630240414}, "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f_0x03a3be7ab4aa263d42d63b6cc594f4fb3d3f3951": {"token_address": "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f", "fee": 100, "pool_address": "0x03a3be7ab4aa263d42d63b6cc594f4fb3d3f3951", "token_base_value": 672931}, "0x1622bf67e6e5747b81866fe0b85178a93c7f86e3_0x2b734ec7555cb49c755a9495a8d17cd2383926e0": {"token_address": "0x1622bf67e6e5747b81866fe0b85178a93c7f86e3", "fee": 10000, "pool_address": "0x2b734ec7555cb49c755a9495a8d17cd2383926e0", "token_base_value": 13367613770}, "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f_0x99dfc0126ed31e0169fc32db6b89adf9fee9a77e": {"token_address": "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f", "fee": 10000, "pool_address": "0x99dfc0126ed31e0169fc32db6b89adf9fee9a77e", "token_base_value": 683878}, "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f_0x149e36e72726e0bcea5c59d40df2c43f60f5a22d": {"token_address": "0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f", "fee": 3000, "pool_address": "0x149e36e72726e0bcea5c59d40df2c43f60f5a22d", "token_base_value": 673817}, "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a_0xb435ebfe0bf4ce66810aa4d44e3a5ca875d40db1": {"token_address": "0xfc5a1a6eb076a2c7ad06ed22c90d7e710e35ad0a", "fee": 500, "pool_address": "0xb435ebfe0bf4ce66810aa4d44e3a5ca875d40db1", "token_base_value": 3464378024838728369}}, "goerli_testnet": {}, "ethereum_mainnet": {}}
+{
+    "arbitrum_mainnet": {},
+    "goerli_testnet": {},
+    "ethereum_mainnet": {
+        "0xc76d53f988820fe70e01eccb0248b312c2f1c7ca_0x72a4e03b5dc7fd9d69f387dd96941d896e96632c": {
+            "token_address": "0xc76d53f988820fe70e01eccb0248b312c2f1c7ca",
+            "fee": 10000,
+            "pool_address": "0x72a4e03b5dc7fd9d69f387dd96941d896e96632c",
+            "token_base_value": 10848685667096650833784280329
+        },
+        "0xde30da39c46104798bb5aa3fe8b9e0e1f348163f_0x06b1655b9d560de112759b4f0bf57d6f005e72fe": {
+            "token_address": "0xde30da39c46104798bb5aa3fe8b9e0e1f348163f",
+            "fee": 10000,
+            "pool_address": "0x06b1655b9d560de112759b4f0bf57d6f005e72fe",
+            "token_base_value": 182087706434289914018
+        },
+        "0xd2877702675e6ceb975b4a1dff9fb7baf4c91ea9_0x16b70f44719b227278a2dc1122e8106cc929ecd1": {
+            "token_address": "0xd2877702675e6ceb975b4a1dff9fb7baf4c91ea9",
+            "fee": 10000,
+            "pool_address": "0x16b70f44719b227278a2dc1122e8106cc929ecd1",
+            "token_base_value": 2063471459396126849706166
+        },
+        "0xf3b9569f82b18aef890de263b84189bd33ebe452_0xc0fbed3cbbf272e0649ddfefdec99f4eba7eca22": {
+            "token_address": "0xf3b9569f82b18aef890de263b84189bd33ebe452",
+            "fee": 3000,
+            "pool_address": "0xc0fbed3cbbf272e0649ddfefdec99f4eba7eca22",
+            "token_base_value": 3425601882498902059113936619
+        },
+        "0x0e9cc0f7e550bd43bd2af2214563c47699f96479_0x5e7c5704e3d77d9f737940fefaac9bcae400b769": {
+            "token_address": "0x0e9cc0f7e550bd43bd2af2214563c47699f96479",
+            "fee": 10000,
+            "pool_address": "0x5e7c5704e3d77d9f737940fefaac9bcae400b769",
+            "token_base_value": 325539345209437110064447
+        },
+        "0xd417144312dbf50465b1c641d016962017ef6240_0xc1409a2c5673299fb15da5f03c27eb1ac88f7d8c": {
+            "token_address": "0xd417144312dbf50465b1c641d016962017ef6240",
+            "fee": 10000,
+            "pool_address": "0xc1409a2c5673299fb15da5f03c27eb1ac88f7d8c",
+            "token_base_value": 1495531521727838599037
+        },
+        "0xf4d2888d29d722226fafa5d9b24f9164c092421e_0x4b5ab61593a2401b1075b90c04cbcdd3f87ce011": {
+            "token_address": "0xf4d2888d29d722226fafa5d9b24f9164c092421e",
+            "fee": 3000,
+            "pool_address": "0x4b5ab61593a2401b1075b90c04cbcdd3f87ce011",
+            "token_base_value": 3217711678107328338774
+        },
+        "0xc5fb36dd2fb59d3b98deff88425a3f425ee469ed_0x62979dff3b5eb032ecba1a5934d1fd4367bb695c": {
+            "token_address": "0xc5fb36dd2fb59d3b98deff88425a3f425ee469ed",
+            "fee": 10000,
+            "pool_address": "0x62979dff3b5eb032ecba1a5934d1fd4367bb695c",
+            "token_base_value": 5135674303233
+        },
+        "0xd533a949740bb3306d119cc777fa900ba034cd52_0x919fa96e88d67499339577fa202345436bcdaf79": {
+            "token_address": "0xd533a949740bb3306d119cc777fa900ba034cd52",
+            "fee": 3000,
+            "pool_address": "0x919fa96e88d67499339577fa202345436bcdaf79",
+            "token_base_value": 275779722373005445962
+        },
+        "0xd5d86fc8d5c0ea1ac1ac5dfab6e529c9967a45e9_0xeb5c52e8af57334fab0b5f3d888990c108545527": {
+            "token_address": "0xd5d86fc8d5c0ea1ac1ac5dfab6e529c9967a45e9",
+            "fee": 10000,
+            "pool_address": "0xeb5c52e8af57334fab0b5f3d888990c108545527",
+            "token_base_value": 6371415320134419504640
+        },
+        "0xf21661d0d1d76d3ecb8e1b9f1c923dbfffae4097_0x5b7e3e37a1aa6369386e5939053779abd3597508": {
+            "token_address": "0xf21661d0d1d76d3ecb8e1b9f1c923dbfffae4097",
+            "fee": 3000,
+            "pool_address": "0x5b7e3e37a1aa6369386e5939053779abd3597508",
+            "token_base_value": 1050662247998337446827
+        },
+        "0xe28b3b32b6c345a34ff64674606124dd5aceca30_0x6c063a6e8cd45869b5eb75291e65a3de298f3aa8": {
+            "token_address": "0xe28b3b32b6c345a34ff64674606124dd5aceca30",
+            "fee": 3000,
+            "pool_address": "0x6c063a6e8cd45869b5eb75291e65a3de298f3aa8",
+            "token_base_value": 28856974951868599394
+        }
+    }
+}

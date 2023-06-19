@@ -11,4 +11,5 @@ class DexTradeChainData:
     graph_type: str
     factory_address: str
     native_token_address: str
+    supported_dex: str
     # Additional chain-specific properties if needed

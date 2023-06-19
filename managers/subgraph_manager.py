@@ -1,5 +1,5 @@
 import json
-import logging
+from logger_config import logger
 import os.path
 import time
 from string import Template
@@ -45,14 +45,14 @@ class SubgraphManager:
                 if "data" in data:
                     return data["data"]
                 else:
-                    logging.error(
+                    logger.error(
                         "Unexpected response format from The Graph API. Data not found"
                     )
                     if retry < self.MAX_RETRIES - 1:
-                        logging.error(f"Retrying in {self.RETRY_DELAY} seconds...")
+                        logger.error(f"Retrying in {self.RETRY_DELAY} seconds...")
                         time.sleep(self.RETRY_DELAY)
                     else:
-                        logging.error("Max retries exceeded. Exiting...")
+                        logger.error("Max retries exceeded. Exiting...")
                         return None
 
             except (
@@ -60,15 +60,15 @@ class SubgraphManager:
                 ValueError,
                 json.JSONDecodeError,
             ) as error_message:
-                logging.error(
+                logger.error(
                     f"Error occurred while calling The Graph API: {error_message}",
                     exc_info=True,
                 )
                 if retry < self.MAX_RETRIES - 1:
-                    logging.error(f"Retrying in {self.RETRY_DELAY} seconds...")
+                    logger.error(f"Retrying in {self.RETRY_DELAY} seconds...")
                     time.sleep(self.RETRY_DELAY)
                 else:
-                    logging.error("Max retries exceeded. Exiting...")
+                    logger.error("Max retries exceeded. Exiting...")
                     return None
 
     def parse_subgraph_response(self, subgraph_type, response_data):
@@ -76,7 +76,7 @@ class SubgraphManager:
         if parser:
             return parser(response_data)
         else:
-            logging.error(f"No parser defined for subgraph type: {subgraph_type}")
+            logger.error(f"No parser defined for subgraph type: {subgraph_type}")
             return []
 
     def parse_uniswap_v3(self, response_data):
@@ -155,7 +155,7 @@ class SubgraphManager:
         if os.path.isfile(f"queries/{subgraph_type}.graphql"):
             query_template = self.read_graphql_file(f"queries/{subgraph_type}.graphql")
         else:
-            logging.error(
+            logger.error(
                 f"No query template defined for subgraph type: {subgraph_type}"
             )
             return []

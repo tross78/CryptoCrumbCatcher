@@ -1,8 +1,9 @@
+import asyncio
 import json
-import logging
 
 import aiofiles
 
+from logger_config import logger
 from managers.wallet_manager import WalletManager
 from models.trade_data import PotentialTrade, TradeData
 
@@ -15,6 +16,7 @@ class TokenMonitor:
         self.tokens = {}
         self.selected_chain_name = selected_chain_name
         self.wallet_manager = wallet_manager
+        self.lock = asyncio.Lock()  # Add a lock
 
     def get_monitored_tokens(self):
         return self.tokens.setdefault(self.selected_chain_name, {})
@@ -25,17 +27,24 @@ class TokenMonitor:
 
     async def load_monitored_tokens(self):
         try:
-            async with aiofiles.open("data/monitored_tokens.json", "r") as json_file:
-                self.tokens = json.loads(await json_file.read())
-                logging.info(f"Monitored tokens loaded {self.tokens}")
+            async with self.lock:  # Lock the method
+                async with aiofiles.open(
+                    "data/monitored_tokens.json", "r"
+                ) as json_file:
+                    self.tokens = json.loads(await json_file.read())
+                    logger.info(f"Monitored tokens loaded {self.tokens}")
         except (FileNotFoundError, json.JSONDecodeError):
             # File does not exist or invalid JSON. Initialize an empty dict.
-            logging.info("Monitored tokens not loaded")
+            logger.info("Monitored tokens not loaded")
             self.tokens = {}
 
     async def save_monitored_tokens(self):
-        async with aiofiles.open("data/monitored_tokens.json", "w") as json_file:
-            await json_file.write(json.dumps(self.tokens))
+        async with self.lock:  # Lock the method
+            async with aiofiles.open("data/monitored_tokens.json", "w") as json_file:
+                await json_file.write(json.dumps(self.tokens))
+                logger.info(
+                    "Lock released after attempting to save_to_file on token_monitor"
+                )
 
     def is_duplicate(self, token_address, pool_address):
         token_pool_id = f"{token_address.lower()}_{pool_address.lower()}"
@@ -76,13 +85,13 @@ class TokenMonitor:
                 "token_base_value": potential_trade.token_base_value,
                 "input_amount": trade_data.input_amount,
             }
-            logging.info(
+            logger.info(
                 f"Token {potential_trade.token_address} added to monitored tokens."
             )
             # Save the updated dictionary of monitored tokens
             await self.save_monitored_tokens()
         else:
-            logging.info(
+            logger.info(
                 f"Token {potential_trade.token_address} is already in monitored tokens."
             )
 

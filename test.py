@@ -1,50 +1,271 @@
 # Online Python compiler (interpreter) to run Python online.
 # Write Python 3 code in this online editor and run it.
-from bot_controller import BotController
-from managers.data_management import DataManagement
-from models.chain_constants import SelectedChain
+import asyncio
+import os
+from typing import Union
+
+from eth_typing.evm import Address, ChecksumAddress
+from web3.exceptions import NameNotFound
+
+AddressLike = Union[Address, ChecksumAddress]
+from web3 import Web3
 
 
-def initialize_bot_controller(selected_chain):
-    data_manager: DataManagement = DataManagement()
-    bot = BotController(
-        data_manager=data_manager,
-        user_selected_chain=selected_chain,
-        reset_userdata_on_load=False,
+def _str_to_addr(s: Union[AddressLike, str]) -> Address:
+    """Idempotent"""
+    if isinstance(s, str):
+        if s.startswith("0x"):
+            return Address(bytes.fromhex(s[2:]))
+        else:
+            raise NameNotFound(f"Couldn't convert string '{s}' to AddressLike")
+    else:
+        return s
+
+
+def get_token_price(
+    w3,
+    input_token_address,
+    output_token_address,
+    input_token_amount,
+    output_token_decimals,
+    pool_fee,
+):
+    # Get the quoter contract address
+    quoter_contract_address = _str_to_addr("0xB048Bbc1Ee6b733FFfCFb9e9CeF7375518e25997")
+
+    # Get the quoter contract ABI
+    quoterV2_abi = [
+        {
+            "inputs": [
+                {"internalType": "address", "name": "_deployer", "type": "address"},
+                {"internalType": "address", "name": "_factory", "type": "address"},
+                {"internalType": "address", "name": "_WETH9", "type": "address"},
+            ],
+            "stateMutability": "nonpayable",
+            "type": "constructor",
+        },
+        {
+            "inputs": [],
+            "name": "WETH9",
+            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+            "stateMutability": "view",
+            "type": "function",
+        },
+        {
+            "inputs": [],
+            "name": "deployer",
+            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+            "stateMutability": "view",
+            "type": "function",
+        },
+        {
+            "inputs": [],
+            "name": "factory",
+            "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+            "stateMutability": "view",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {"internalType": "int256", "name": "amount0Delta", "type": "int256"},
+                {"internalType": "int256", "name": "amount1Delta", "type": "int256"},
+                {"internalType": "bytes", "name": "path", "type": "bytes"},
+            ],
+            "name": "pancakeV3SwapCallback",
+            "outputs": [],
+            "stateMutability": "view",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {"internalType": "bytes", "name": "path", "type": "bytes"},
+                {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+            ],
+            "name": "quoteExactInput",
+            "outputs": [
+                {"internalType": "uint256", "name": "amountOut", "type": "uint256"},
+                {
+                    "internalType": "uint160[]",
+                    "name": "sqrtPriceX96AfterList",
+                    "type": "uint160[]",
+                },
+                {
+                    "internalType": "uint32[]",
+                    "name": "initializedTicksCrossedList",
+                    "type": "uint32[]",
+                },
+                {"internalType": "uint256", "name": "gasEstimate", "type": "uint256"},
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "tokenIn",
+                            "type": "address",
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "tokenOut",
+                            "type": "address",
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "amountIn",
+                            "type": "uint256",
+                        },
+                        {"internalType": "uint24", "name": "fee", "type": "uint24"},
+                        {
+                            "internalType": "uint160",
+                            "name": "sqrtPriceLimitX96",
+                            "type": "uint160",
+                        },
+                    ],
+                    "internalType": "struct IQuoterV2.QuoteExactInputSingleParams",
+                    "name": "params",
+                    "type": "tuple",
+                }
+            ],
+            "name": "quoteExactInputSingle",
+            "outputs": [
+                {"internalType": "uint256", "name": "amountOut", "type": "uint256"},
+                {
+                    "internalType": "uint160",
+                    "name": "sqrtPriceX96After",
+                    "type": "uint160",
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "initializedTicksCrossed",
+                    "type": "uint32",
+                },
+                {"internalType": "uint256", "name": "gasEstimate", "type": "uint256"},
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {"internalType": "bytes", "name": "path", "type": "bytes"},
+                {"internalType": "uint256", "name": "amountOut", "type": "uint256"},
+            ],
+            "name": "quoteExactOutput",
+            "outputs": [
+                {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+                {
+                    "internalType": "uint160[]",
+                    "name": "sqrtPriceX96AfterList",
+                    "type": "uint160[]",
+                },
+                {
+                    "internalType": "uint32[]",
+                    "name": "initializedTicksCrossedList",
+                    "type": "uint32[]",
+                },
+                {"internalType": "uint256", "name": "gasEstimate", "type": "uint256"},
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function",
+        },
+        {
+            "inputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "address",
+                            "name": "tokenIn",
+                            "type": "address",
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "tokenOut",
+                            "type": "address",
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "amount",
+                            "type": "uint256",
+                        },
+                        {"internalType": "uint24", "name": "fee", "type": "uint24"},
+                        {
+                            "internalType": "uint160",
+                            "name": "sqrtPriceLimitX96",
+                            "type": "uint160",
+                        },
+                    ],
+                    "internalType": "struct IQuoterV2.QuoteExactOutputSingleParams",
+                    "name": "params",
+                    "type": "tuple",
+                }
+            ],
+            "name": "quoteExactOutputSingle",
+            "outputs": [
+                {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+                {
+                    "internalType": "uint160",
+                    "name": "sqrtPriceX96After",
+                    "type": "uint160",
+                },
+                {
+                    "internalType": "uint32",
+                    "name": "initializedTicksCrossed",
+                    "type": "uint32",
+                },
+                {"internalType": "uint256", "name": "gasEstimate", "type": "uint256"},
+            ],
+            "stateMutability": "nonpayable",
+            "type": "function",
+        },
+    ]
+
+    # Create the quoter contract object
+    quoter_contract = w3.eth.contract(
+        address=w3.to_checksum_address(quoter_contract_address), abi=quoterV2_abi
     )
 
-    # bot.protocol_manager.approve(
-    #     "0x6B175474E89094C44Da98b954EedeAC495271d0F",  # DAI
-    #     10000000000000000,  # 0.01 ETH
+    params = {
+        "tokenIn": w3.to_checksum_address(input_token_address),
+        "tokenOut": w3.to_checksum_address(output_token_address),
+        "amount": int(input_token_amount),
+        "fee": int(pool_fee),
+        "sqrtPriceLimitX96": 0,
+    }
+
+    # Call the quoteExactOutputSingle method
+    amount_in = quoter_contract.functions.quoteExactOutputSingle(params).call()
+
+    # Return the amount in
+    return amount_in
+
+
+async def main():
+    provider_url = "https://serene-few-daylight.bsc.discover.quiknode.pro/8e6bd72b59001bb462213064d69c6a6bc8f428e4/"
+    os.environ["PROVIDER"] = provider_url
+    w3 = Web3(Web3.HTTPProvider(provider_url))
+    # print(
+    #     get_token_price(
+    #         w3,
+    #         "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+    #         "0x55d398326f99059ff775485246999027b3197955",
+    #         1000000000000000,
+    #         18,
+    #         100,
+    #     )
     # )
-
-    bot.protocol_manager.make_trade_output(
-        "0x6B175474E89094C44Da98b954EedeAC495271d0F",  # DAI
-        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",  # test_class.blockchain_manager.current_native_token_address,  # GETH
-        10000000000000000,  # 0.01 ETH
+    print(
+        get_token_price(
+            w3,
+            "0x55d398326f99059ff775485246999027b3197955",
+            "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+            1000000000000000,
+            18,
+            100,
+        )
     )
 
 
-def get_select_chain_input(selected_chain_options):
-    while True:
-        print("Available chain options:")
-        for i, option in enumerate(selected_chain_options, start=1):
-            print(f"{i}. {option.value}")
-
-        user_input = input("Enter the number corresponding to your selected chain: ")
-
-        try:
-            option_index = int(user_input) - 1
-            if 0 <= option_index < len(selected_chain_options):
-                selected_chain = selected_chain_options[option_index]
-                return selected_chain
-        except ValueError:
-            pass
-
-        print("Invalid input. Please try again.")
-
-
-user_selected_chain = get_select_chain_input(list(SelectedChain))
-print(f"Selected chain: {user_selected_chain.value}")
-
-initialize_bot_controller(user_selected_chain)
+asyncio.run(main())

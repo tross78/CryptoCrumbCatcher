@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 from enum import Enum
 from itertools import cycle
@@ -8,6 +7,7 @@ from dotenv import load_dotenv
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 
+from logger_config import logger
 from models.chain_constants import SelectedChain
 from models.dextrade_chain_data import DexTradeChainData
 
@@ -30,12 +30,13 @@ class BlockchainManager:
         short_name = self.current_chain.short_name.upper()
         provider_urls = json.loads(os.environ[f"{short_name}_PROVIDER_URLS"])
         self.provider_urls = cycle(provider_urls)
+
         self.set_provider()
-        # Initialize factory contract
         self.wallet_private_key = os.environ["WALLET_PRIVATE_KEY"]
         self.main_account = self.web3_instance.eth.account.from_key(
             self.wallet_private_key
         )
+        self.web3_instance.eth.default_account = self.main_account.address
         self.wallet_address = self.main_account.address
         self.gas_limit_per_transaction = 150000  # example gas limit
 
@@ -43,9 +44,9 @@ class BlockchainManager:
         provider_url = next(self.provider_urls)
         os.environ["PROVIDER"] = provider_url
         self.web3_instance: Web3 = Web3(Web3.HTTPProvider(provider_url))
-        self.web3_instance.middleware_onion.inject(
-            geth_poa_middleware, layer=0
-        )  # Required for some Ethereum networks
+        # self.web3_instance.middleware_onion.inject(
+        #     geth_poa_middleware, layer=0
+        # )  # Required for some Ethereum networks
 
     def get_wallet_address(self):
         return self.wallet_address
@@ -68,6 +69,7 @@ class BlockchainManager:
                 chain_data["subgraph_type"],
                 chain_data["factory_address"],
                 chain_data["native_token_address"],
+                chain_data["supported_dex"],
             )
             for chain_data in supported_chains_data
         }
@@ -78,12 +80,12 @@ class BlockchainManager:
             return json.load(json_file)
 
     def load_erc20_abi(self):
-        with open("data/erc20_abi.json", "r") as json_file:
+        with open("abi/erc20_abi.json", "r") as json_file:
             return json.load(json_file)
 
-    def load_dex_contract(self):
-        with open("data/uniswap_factory_abi.json", "r") as json_file:
-            return json.load(json_file)
+    # def load_dex_contract(self):
+    #     with open("data/uniswap_factory_abi.json", "r") as json_file:
+    #         return json.load(json_file)
 
     def set_current_chain(self, selected_chain_enum: Enum):
         self.current_chain = self.supported_chains.get(selected_chain_enum.value)
@@ -99,15 +101,10 @@ class BlockchainManager:
         )
         return token_contract.functions.balanceOf(wallet_address).call()
 
-    def get_dex_contract(self):
+    def get_supported_dex(self):
         chain = self.get_current_chain()
-        logging.info(f"Current RPC provider URL: {chain.rpc_url}")
-        factory_address = chain.factory_address
-        factory_contract = self.web3_instance.eth.contract(
-            address=factory_address,
-            abi=self.load_dex_contract(),
-        )
-        return factory_contract
+        supported_dex = chain.supported_dex
+        return supported_dex
 
     def calculate_gas_cost_wei(self, num_transactions=2):
         gas_limit_per_transaction = self.gas_limit_per_transaction

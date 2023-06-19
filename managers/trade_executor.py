@@ -1,7 +1,7 @@
-import logging
 from decimal import Decimal
 
 from defi.protocol_manager import ProtocolManager
+from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from managers.wallet_manager import WalletManager
 from models.trade_action import TradeAction
@@ -59,7 +59,7 @@ class TradeExecutor:
             # Check if token amount is negative or invalid
             if trade_data.expected_amount < 0:
                 # Handle the error or invalid token amount
-                logging.error("Invalid token amount. Cannot proceed further.")
+                logger.error("Invalid token amount. Cannot proceed further.")
                 return  # or raise an exception, return an error code, or take appropriate action
 
             if action == TradeAction.BUY:
@@ -69,20 +69,20 @@ class TradeExecutor:
                     gas_fee,
                 )
             elif action == TradeAction.SELL:
-                self.sell_token(potential_trade, trade_data, gas_fee)
+                await self.sell_token(potential_trade, trade_data, gas_fee)
             else:
                 raise ValueError(
                     "Invalid action. Use TradeAction.BUY or TradeAction.SELL."
                 )
 
         except ValueError as error_message:
-            logging.error(
+            logger.error(
                 f"Error while simulating token trade {potential_trade.token_address}: \
                     {error_message}",
                 exc_info=True,
             )
         except ConnectionError as error_message:
-            logging.error(
+            logger.error(
                 f"Connection error while simulating token trade \
                     {potential_trade.token_address}: {error_message}",
                 exc_info=True,
@@ -91,7 +91,7 @@ class TradeExecutor:
     async def buy_token(
         self, potential_trade: PotentialTrade, trade_data: TradeData, gas_fee
     ):
-        logging.info(
+        logger.info(
             f"Buying token: {potential_trade.token_address}, input_amount: {trade_data.input_amount}, expected_amount: {trade_data.expected_amount}"
         )
         if self.demo_mode:
@@ -116,8 +116,8 @@ class TradeExecutor:
             )
 
             # Set new balances
-            self.wallet_manager.set_native_token_balance(new_eth_balance)
-            self.wallet_manager.set_token_balance(
+            await self.wallet_manager.set_native_token_balance(new_eth_balance)
+            await self.wallet_manager.set_token_balance(
                 potential_trade.token_address, int(new_token_balance)
             )
         else:
@@ -131,10 +131,10 @@ class TradeExecutor:
             )
         await self.token_monitor.add_monitored_token(potential_trade, trade_data)
 
-    def sell_token(
+    async def sell_token(
         self, potential_trade: PotentialTrade, trade_data: TradeData, gas_fee
     ):
-        logging.info(
+        logger.info(
             f"Selling token: {potential_trade.token_address}, input_amount: {trade_data.input_amount}, expected_amount: {trade_data.expected_amount}"
         )
         if self.demo_mode:
@@ -157,13 +157,13 @@ class TradeExecutor:
 
             new_eth_balance = (current_eth_balance + net_token_amount_wei) - gas_fee
 
-            logging.info(f"net_token_amount_wei: {net_token_amount_wei:.0f}")
-            logging.info(f"new_eth_balance: {new_eth_balance:.0f}")
-            logging.info(f"new_token_balance: {new_token_balance:.0f}")
+            logger.info(f"net_token_amount_wei: {net_token_amount_wei:.0f}")
+            logger.info(f"new_eth_balance: {new_eth_balance:.0f}")
+            logger.info(f"new_token_balance: {new_token_balance:.0f}")
 
             # Update balances
-            self.wallet_manager.set_native_token_balance(int(new_eth_balance))
-            self.wallet_manager.set_token_balance(
+            await self.wallet_manager.set_native_token_balance(int(new_eth_balance))
+            await self.wallet_manager.set_token_balance(
                 potential_trade.token_address, int(new_token_balance)
             )
         else:

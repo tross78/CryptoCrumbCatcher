@@ -2,12 +2,11 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 from retrying import retry
-from uniswap import Uniswap
 
 
 class DexClientWrapper:
-    def __init__(self, dex_client):
-        self.dex_client: Uniswap = dex_client
+    def __init__(self, client):
+        self.client = client
         self.executor = ThreadPoolExecutor(max_workers=5)
 
     # Decorator that will make the function retry on exceptions
@@ -26,7 +25,7 @@ class DexClientWrapper:
         try:
             price = await loop.run_in_executor(
                 self.executor,
-                self.dex_client.get_price_input,
+                self.client.get_price_input,
                 token_in,
                 token_out,
                 token_trade_amount,
@@ -49,7 +48,7 @@ class DexClientWrapper:
         try:
             price = await loop.run_in_executor(
                 self.executor,
-                self.dex_client.get_price_output,
+                self.client.get_price_output,
                 token_in,
                 token_out,
                 token_trade_amount,
@@ -61,7 +60,7 @@ class DexClientWrapper:
             raise  # To trigger retry we need to re-raise the exception
 
     def make_trade(self, token_address, native_token_address, trade_amount, fee):
-        self.dex_client.make_trade(
+        self.client.make_trade(
             token_address,
             native_token_address,
             trade_amount,
@@ -70,6 +69,4 @@ class DexClientWrapper:
         )
 
     def make_trade_output(self, token_address, native_token_address, trade_amount):
-        self.dex_client.make_trade_output(
-            token_address, native_token_address, trade_amount
-        )
+        self.client.make_trade_output(token_address, native_token_address, trade_amount)

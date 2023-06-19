@@ -1,6 +1,5 @@
 import datetime
 import json
-import logging
 from ast import List
 from typing import List, Optional, Union
 
@@ -9,9 +8,12 @@ from uniswap import Uniswap
 from web3.middleware import geth_poa_middleware
 
 from defi.dex_client_wrapper import DexClientWrapper
+from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from managers.subgraph_manager import SubgraphManager
+from managers.token_blacklist_manager import TokenBlacklistManager
 from models.graph_structures import Pool
+from pancakeswap import Pancakeswap
 from simulation.simulated_dex_client_wrapper import SimulatedDexClientWrapper
 
 
@@ -28,22 +30,33 @@ class ProtocolManager:
         self.stablecoin_tokens = self.load_stablecoin_data()
         self.subgraph_manager = SubgraphManager(blockchain_manager)
         self.blockchain_manager: BlockchainManager = blockchain_manager
+        self.token_blacklist_manager: TokenBlacklistManager = TokenBlacklistManager(
+            blockchain_manager
+        )
         self.demo_mode = demo_mode
         self.simulate_pump_mode = simulate_pump_mode
-        uniswap_client = Uniswap(
+
+        dex_name = self.blockchain_manager.get_supported_dex()
+
+        dex_client = Uniswap(
             address=self.blockchain_manager.get_wallet_address(),
             private_key=self.blockchain_manager.get_wallet_private_key(),
             version=3,
         )
-
-        uniswap_client.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
         if simulate_pump_mode:
             self.dex_client_wrapper = SimulatedDexClientWrapper(
-                uniswap_client,
+                dex_client,
                 self.blockchain_manager,
             )
         else:
-            self.dex_client_wrapper = DexClientWrapper(uniswap_client)
+            if dex_name == "pancakeswap":
+                dex_client = Pancakeswap(
+                    w3=self.blockchain_manager.web3_instance,
+                    wallet_private_key=self.blockchain_manager.wallet_private_key,
+                )
+
+            self.dex_client_wrapper = DexClientWrapper(dex_client)
+        dex_client.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     def validate_get_price_inputs(
         self,
@@ -96,13 +109,12 @@ class ProtocolManager:
 
     async def get_tokens(
         self,
-        factory_contract,
         past_time_hours=3,
         min_liquidity_usd=1,
         max_liquidity_usd=100000,
         min_volume_usd=5000,
     ):
-        logging.info("Trying to get new tokens here:")
+        logger.info("Trying to get new tokens here:")
         native_token_address = (
             self.blockchain_manager.get_current_chain().native_token_address
         )
@@ -130,6 +142,11 @@ class ProtocolManager:
                     (token_address != native_token_address)
                     and (not self.is_stablecoin(token_address))
                     and (pool_address != "0x0000000000000000000000000000000000000000")
+                    and not (
+                        await self.token_blacklist_manager.is_token_blacklisted(
+                            token_address
+                        )
+                    )
                 ):
                     new_token_addresses.append(
                         {
@@ -140,7 +157,7 @@ class ProtocolManager:
                     )
             return list(new_token_addresses)
         except Exception as error_message:
-            logging.error(f"Error occurred in get_tokens: {str(error_message)}")
+            logger.error(f"Error occurred in get_tokens: {str(error_message)}")
             return []  # Return empty list on error, adjust as needed
 
     # Given token_trade_amount for native_token_address,
@@ -153,7 +170,7 @@ class ProtocolManager:
         token_out = self.blockchain_manager.web3_instance.to_checksum_address(
             self.blockchain_manager.get_current_chain().native_token_address
         )
-        logging.info(
+        logger.info(
             f"getting price input from dex: token_in { token_in}, \
                 token_out: {token_out}, \
                     amount_in: {token_trade_amount}, fee {fee}"
@@ -162,13 +179,13 @@ class ProtocolManager:
             native_token_amount = await self.dex_client_wrapper.get_price_input(
                 token_in, token_out, token_trade_amount, fee
             )
-            logging.info(
+            logger.info(
                 f"Native token (WETH) amount for given token amount: {native_token_amount}"
             )
             return native_token_amount
         except ValueError as error_message:
-            logging.error(
-                f"Error during price estimation: {error_message}", exc_info=True
+            logger.error(
+                f"Error during price estimation: {error_message}", exc_info=False
             )
             return -1
 
@@ -182,15 +199,15 @@ class ProtocolManager:
         token_out = self.blockchain_manager.web3_instance.to_checksum_address(
             self.blockchain_manager.get_current_chain().native_token_address
         )
-        logging.info(
+        logger.info(
             f"getting price output from dex: token_in: {token_in}, token_out: {token_out}, amount_in: {token_trade_amount}, fee: {fee}"
         )
 
         try:
             self.validate_get_price_inputs(token_in, token_out, token_trade_amount, fee)
-            # logging.info("Uniswap price inputs valid!")
+            # logger.info("Uniswap price inputs valid!")
         except ValueError as error:
-            logging.info(f"Error in Uniswap price inputs: {error}")
+            logger.info(f"Error in Uniswap price inputs: {error}")
 
         try:
             # dex_client_wrapper
@@ -199,9 +216,9 @@ class ProtocolManager:
             )
             return native_token_amount
         except Exception as error:
-            logging.error(f"Error during price estimation: {error}", exc_info=True)
+            logger.error(f"Error during price estimation: {error}", exc_info=False)
             # Handle the error or invalid price estimation
-            logging.info("Invalid token price estimation. Cannot proceed further.")
+            logger.info("Invalid token price estimation. Cannot proceed further.")
             return -1
 
     def make_trade(self, token_address, native_token_address, trade_amount, fee):

@@ -7,8 +7,8 @@
       inputTokens_: { id_contains: "$native_token_address" }
       # createdTimestamp_gt: "$past_time"
       totalValueLockedUSD_gt: $min_liquidity_usd
-      totalValueLockedUSD_lt: $max_liquidity_usd
-      cumulativeVolumeUSD_gt: $min_volume_usd
+      # totalValueLockedUSD_lt: $max_liquidity_usd
+      # cumulativeVolumeUSD_gt: $min_volume_usd
     }
   ) {
     id
@@ -18,6 +18,7 @@
     }
     tick
     totalLiquidity
+    cumulativeVolumeUSD
     inputTokens {
       id
       name

@@ -144,8 +144,8 @@ class Pancakeswap:
         fee: Optional[int] = None,
     ) -> int:
         params = {
-            "tokenIn": self.w3.to_checksum_address(token1),
-            "tokenOut": self.w3.to_checksum_address(token0),
+            "tokenIn": self.w3.to_checksum_address(token0),
+            "tokenOut": self.w3.to_checksum_address(token1),
             "amount": int(qty),
             "fee": int(fee),
             "sqrtPriceLimitX96": 0,

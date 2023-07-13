@@ -68,8 +68,9 @@ class TokensnifferScraper:
             time_difference = current_timestamp - last_checked
 
             # Handle 'pending' or '-1' score case here
+            # 86400
             if (
-                cached_score < 0 and time_difference > 86400
+                cached_score < 0 and time_difference > 604800
             ) or cached_score == -2:  # More than 24 hours
                 logger.info(
                     "More than 24 hours have passed since the last check for pending score. \
@@ -88,7 +89,7 @@ class TokensnifferScraper:
         return False
 
     async def scrape_tokensniffer_score(self, token_address):
-        self.vpn_manager.connect_to_server()
+        # self.vpn_manager.connect_to_server()
         selected_chain = self.blockchain_manager.get_current_chain()
         short_name = selected_chain.short_name
 
@@ -122,7 +123,7 @@ class TokensnifferScraper:
 
         score = self.extract_score_from_html(html)
         await self.cache_token_score(token_address, score)
-        self.vpn_manager.disconnect_from_server()
+        # self.vpn_manager.disconnect_from_server()
         driver.quit()
         return score
 
@@ -168,10 +169,14 @@ class TokensnifferScraper:
             score = get_percentage_from_string(score_str)
             return score
 
-        token_pending = soup.find("div", class_="Home_section__16Giz")
-        if token_pending and token_pending.text.strip() == "Token is pending review":
+        token_message = soup.find("div", class_="Home_section__16Giz")
+        if token_message and token_message.text.strip() == "Token is pending review":
             logger.info("token pending review: returning -1")
             return -1
+
+        if token_message and token_message.text.strip() == "Token not found":
+            logger.info("token not found: returning 0")
+            return 0
 
         return -2  # No non-zero scores found
 

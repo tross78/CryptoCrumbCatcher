@@ -1,0 +1,25 @@
+{
+  pools(
+    first: 1000
+    orderBy: createdAtTimestamp
+    orderDirection: desc
+    where: { id: "$pool_address" }
+  ) {
+    id
+    token0 {
+      id
+      symbol
+      name
+    }
+    token1 {
+      id
+      symbol
+      name
+    }
+    feeTier
+    liquidity
+    untrackedVolumeUSD
+    sqrtPrice
+    tick
+  }
+}

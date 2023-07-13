@@ -53,13 +53,8 @@ class TokenBlacklistManager:
             await self.load_from_file()
         current_chain_name = self.blockchain_manager.get_current_chain().name
         chain_tokens = self.tokens.get(current_chain_name, [])
-        token_address_lower = token_address.lower()
-
         for token in chain_tokens:
-            if (
-                token.get("token_address") == token_address_lower
-                and token.get("retries") > 5
-            ):
+            if token.lower() == token_address.lower():
                 return True
         return False
 

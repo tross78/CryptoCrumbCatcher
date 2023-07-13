@@ -1,18 +1,18 @@
-from copy import deepcopy
 from decimal import Decimal
 
 from defi.protocol_manager import ProtocolManager
 from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
+from managers.trade_buy_handler import BuyHandler
 from managers.trade_evaluator import TradeEvaluator
 from managers.trade_executor import TradeExecutor
+from managers.trade_sell_handler import SellHandler
 from managers.wallet_manager import WalletManager
 from models.trade_action import TradeAction
-from models.trade_data import PotentialTrade, TradeData, TradeType
+from models.trade_data import PotentialTrade, TradeData
 from token_info.token_analysis import TokenAnalysis
 from token_info.token_monitor import TokenMonitor
-from token_info.token_watchlist import TokenWatchlist
 
 
 class TradeController:
@@ -39,148 +39,37 @@ class TradeController:
         self.trade_executor: TradeExecutor = trade_executor
         self.trade_evaluator: TradeEvaluator = trade_evaluator
         self.protocol_manager: ProtocolManager = protocol_manager
+        self.buy_handler = BuyHandler(
+            self.blockchain_manager,
+            self.protocol_manager,
+            self.data_manager,
+            self.token_monitor,
+            self.wallet_manager,
+            self,
+        )
+        self.sell_handler = SellHandler(
+            self.demo_mode,
+            self.blockchain_manager,
+            self.protocol_manager,
+            self.data_manager,
+            self.token_monitor,
+            self.wallet_manager,
+            self.token_analysis,
+            self.trade_evaluator,
+            self,
+        )
 
     async def monitor_trades(self, watchlist):
-        # trade_amount = int(
-        #     wallet_balance_native * self.data_manager.config["trade_amount_percent"]
-        # )
         trade_amount = int(
             self.wallet_manager.get_native_token_balance_percentage(
                 self.data_manager.config["trade_amount_percentage"]
             )
         )
-        await self.buy_increasing_tokens_from_watchlist(
+        await self.buy_handler.buy_increasing_tokens(
             trade_amount,
             watchlist,
         )
-        await self.sell_decreasing_tokens_from_monitor()
-
-    def has_been_bought_already(self, token_address, pool_address):
-        token_pool_id = f"{token_address}_{pool_address}"
-        monitored_tokens = self.token_monitor.get_monitored_tokens()
-
-        for token_pool_id, obj in monitored_tokens.items():
-            # logger.info(f"Type of obj: {type(obj)}")  # Check the type of obj
-            if not isinstance(obj, dict):
-                logger.warning(f"obj is not a dictionary: {obj}")
-                continue
-            if "token_address" not in obj or "pool_address" not in obj:
-                logger.warning(f"obj doesn't have expected keys: {obj}")
-                continue
-            if f'{obj["token_address"]}_{obj["pool_address"]}' == token_pool_id:
-                return True
-        return False
-
-    async def buy_increasing_tokens_from_watchlist(
-        self,
-        native_token_trade_amount,
-        watchlist: TokenWatchlist,
-    ):
-        # Create a copy of the watchlist
-        watchlist_copy = list(watchlist)
-
-        for token in watchlist_copy:
-            potential_trade = PotentialTrade(
-                token["token_address"],
-                token["pool_address"],
-                token["fee"],
-                token["token_base_value"],
-            )
-            logger.info(
-                "buy_increasing_tokens_from_watchlist: checking duplicate monitored token"
-            )
-
-            if not self.has_been_bought_already(
-                potential_trade.token_address, potential_trade.pool_address
-            ):
-                await self.process_increasing_token(
-                    potential_trade, native_token_trade_amount
-                )
-                # # Remove the token from watchlist if it should no longer be watched
-                # if not should_continue_watching:
-                #     await watchlist.remove(
-                #         potential_trade.token_address, potential_trade.pool_address
-                #     )
-            else:
-                logger.info(
-                    f"buy_increasing_tokens_from_watchlist: watchlist token {token} is already in monitored token list, removing from watchlist"
-                )
-                await watchlist.remove(
-                    potential_trade.token_address, potential_trade.pool_address
-                )
-
-    async def process_increasing_token(
-        self,
-        potential_trade: PotentialTrade,
-        native_token_trade_amount,
-    ):
-        logger.info(
-            f"processing increasing token: watchlist token {potential_trade.token_address}"
-        )
-
-        # amount of tokens given for a amount of ETH
-        current_token_amount = await self.protocol_manager.get_min_token_for_native(
-            potential_trade.token_address,
-            native_token_trade_amount,
-            potential_trade.fee,
-        )
-
-        gas_limit_per_transaction = self.blockchain_manager.gas_limit_per_transaction
-        # Get the current gas price in Gwei
-        gas_price_wei = self.blockchain_manager.web3_instance.eth.gas_price
-        gas_cost_per_transaction_wei = gas_price_wei * gas_limit_per_transaction
-
-        # Avoid ZeroDivisionError
-        if native_token_trade_amount == 0:
-            print("Native token trade amount is zero, aborting.")
-            return
-
-        gas_percentage_of_trade = float(gas_cost_per_transaction_wei) / float(
-            native_token_trade_amount
-        )
-
-        gas_cost_trade_threshold = float(
-            self.data_manager.config["gas_cost_trade_threshold"]
-        )
-
-        if gas_percentage_of_trade > gas_cost_trade_threshold:
-            print(
-                f"Gas cost exceeds { gas_cost_trade_threshold * 100}% of trade amount, aborting."
-            )
-            return
-
-        # Check if token amount is negative or invalid, -1 is invalid or error
-        if current_token_amount < 0:
-            # Handle the error or invalid token amount
-            logger.error("Invalid token amount. Cannot proceed further.")
-            return  # or raise an exception, return an error code, or take appropriate action
-
-        price_increase_threshold = Decimal(
-            str(self.data_manager.config["price_increase_threshold"])
-        )
-        threshold_token_amount = (
-            Decimal(str(float(potential_trade.token_base_value)))
-            / price_increase_threshold  # divide because its the opposite, less tokens if token is worth more in eth
-        )
-        logger.info(
-            f"Token : {potential_trade.token_address}, "
-            f"Current Token Amount: {current_token_amount:.0f}, "
-            f"Threshold: {price_increase_threshold}, "
-            f"Expected Token Amount: {threshold_token_amount:.0f}"
-        )
-
-        if current_token_amount < threshold_token_amount:  # less tokens; more valuable
-            trade_data_buy = TradeData(
-                trade_type=TradeType.BUY,
-                input_amount=native_token_trade_amount,  # eg. 0.01 ETH
-                expected_amount=None,  # to be calculated later
-                original_investment_eth=native_token_trade_amount,
-            )
-
-            await self.trade_increasing_token(potential_trade, trade_data_buy)
-            return False
-        elif current_token_amount > 0:  # token price is still valid
-            return True
+        await self.sell_handler.sell_decreasing_tokens()
 
     async def trade_increasing_token(
         self, potential_trade: PotentialTrade, trade_data: TradeData
@@ -198,120 +87,6 @@ class TradeController:
             logger.info(
                 f"No balance left to trade {potential_trade.token_address}, removing from watchlist."
             )
-
-    async def sell_decreasing_tokens_from_monitor(self):
-        logger.info("sell_decreasing_tokens_from_monitor: start")
-
-        # remove any orphaned tokens in the monitor
-        for _, token_data in self.token_monitor.get_monitored_tokens():
-            token_address = token_data["token_address"]
-            pool_address = token_data["pool_address"]
-            logger.info(
-                "Checking monitored token valid: From sell_decreasing_tokens_from_monitor"
-            )
-            await self.check_monitored_valid(token_address, pool_address)
-
-        monitored_tokens = deepcopy(self.token_monitor.get_monitored_tokens())
-
-        logger.info("sell_decreasing_tokens_from_monitor: checking monitored_tokens")
-
-        for _, token_data in monitored_tokens.items():
-            actual_token_balance = self.wallet_manager.get_token_balance(
-                token_data["token_address"]
-            )
-
-            potential_trade = PotentialTrade(
-                token_data["token_address"],
-                token_data["pool_address"],
-                token_data["fee"],
-                token_data["token_base_value"],
-            )
-
-            logger.info(
-                f"sell_decreasing_tokens_from_monitor: token: {potential_trade.token_address} fee: {potential_trade.fee} pool_address: {pool_address} token_base_value: {potential_trade.token_base_value}"
-            )
-
-            trade_data_sell = TradeData(
-                trade_type=TradeType.SELL,
-                input_amount=actual_token_balance,
-                expected_amount=None,
-                original_investment_eth=token_data["input_amount"],
-            )
-
-            await self.process_decreasing_token(
-                potential_trade,
-                trade_data_sell,
-            )
-
-    async def process_decreasing_token(
-        self,
-        potential_trade: PotentialTrade,
-        trade_data: TradeData,
-    ):
-        logger.info("process_decreasing_token: start")
-        # process the token prices for demo mode
-        current_token_amount = await self.protocol_manager.get_min_token_for_native(
-            potential_trade.token_address,
-            trade_data.original_investment_eth,
-            potential_trade.fee,
-        )
-
-        # amount in ETH we'd expect if we sold right now
-        trade_data.expected_amount = (
-            await self.protocol_manager.get_max_native_for_token(
-                potential_trade.token_address,
-                trade_data.input_amount,
-                potential_trade.fee,
-            )
-        )
-
-        # Check if token amount or current_token_amount is negative or invalid
-        if trade_data.expected_amount < 0 or current_token_amount < 0:
-            # Handle the error or invalid token amount
-            logger.error("Invalid token amount. Cannot proceed further.")
-            return  # or raise an exception, return an error code, or take appropriate action
-
-        # check against amount paid for the tokens
-        # did we make a ROI?
-        current_roi_multiplier = (
-            float(trade_data.expected_amount)
-            / float(trade_data.original_investment_eth)  # eg. 0.08 / 0.06
-            if potential_trade.token_base_value > 0
-            else 0
-        )
-
-        expected_roi_multiplier = self.trade_evaluator.calculate_roi_multiplier(
-            potential_trade, trade_data
-        )
-
-        has_reached_roi_or_decreased = (
-            current_roi_multiplier > expected_roi_multiplier
-        ) or (
-            current_roi_multiplier
-            < self.token_analysis.data_manager.config["price_decrease_threshold"]
-        )
-
-        logger.info(
-            f"Selling decreasing tokens: current_price: {current_token_amount}, \
-                trade_data.original_investment_eth:{trade_data.original_investment_eth}, current_roi_multiplier: {current_roi_multiplier}, \
-                    expected_multiplier:{expected_roi_multiplier} trade_data.expected_amount: {trade_data.expected_amount}"
-        )
-
-        # if self.blockchain_manager.get_current_chain().name == "goerli_testnet":
-        #     has_reached_roi_or_decreased = True
-
-        if has_reached_roi_or_decreased:
-            await self.trade_decreasing_token(
-                potential_trade,
-                trade_data,
-                current_roi_multiplier,
-                expected_roi_multiplier,
-            )
-        # else:
-        #     logger.info("Checking monitored token valid: From process_decreasing_token")
-        #     await self.check_monitored_valid(
-        #         potential_trade.token_address, potential_trade.pool_address
-        #     )
 
     async def trade_decreasing_token(
         self,
@@ -351,16 +126,3 @@ class TradeController:
             await self.token_monitor.remove_monitored_token(
                 potential_trade.token_address, potential_trade.pool_address
             )
-
-    async def check_monitored_valid(self, token_address, pool_address):
-        if self.demo_mode:
-            if not self.wallet_manager.get_demo_mode_tokens().get(token_address):
-                logger.info(
-                    f"{token_address} is not in the token balance dictionary. \
-                        Removing token {token_address} from monitored tokens \
-                        ** removed remove_monitored_token **"
-                )
-
-                await self.token_monitor.remove_monitored_token(
-                    token_address, pool_address
-                )

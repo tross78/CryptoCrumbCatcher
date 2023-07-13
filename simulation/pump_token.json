@@ -1,1 +1,10 @@
-[]
+[
+    {
+        "token_address": "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+        "increase_percentage": 1,
+        "pump_started": false,
+        "initial_price": 125408697704674186445663959,
+        "pumped_at": 1687401522.39995,
+        "current_price": 119436695179761267270221824
+    }
+]

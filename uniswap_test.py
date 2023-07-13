@@ -49,21 +49,27 @@ uniswap_client = Uniswap(
 #     )
 # )
 
-goerli_token0 = Web3.to_checksum_address(
-    "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"
-)  # UNI
-goerli_token1 = Web3.to_checksum_address(
-    "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
-)  # WETH
+# goerli_token0 = Web3.to_checksum_address(
+#     "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"
+# )  # UNI
+# goerli_token1 = Web3.to_checksum_address(
+#     "0xB4FBF271143F4FBf7B91A5ded31805e42b2208d6"
+# )  # WETH
 
-# print(
-#     uniswap_client.get_price_output(
-#         goerli_token0, goerli_token1, 1000000000000000000, 3000
-#     )
-# )
+#    "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+#         "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+
+print(
+    uniswap_client.get_price_output(
+        Web3.to_checksum_address("0x6982508145454ce325ddbe47a25d4ec3d2311933"),
+        Web3.to_checksum_address("0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"),
+        100000000000000000,
+        3000,
+    )
+)
 
 # buys 0.1 worth of UNI with WETH
 # uniswap_client.make_trade(goerli_token1, goerli_token0, 100000000000000000)
 
 # sells all of UNI (2.295) for WETH
-uniswap_client.make_trade(goerli_token0, goerli_token1, int(2.295e18))
+# uniswap_client.make_trade(goerli_token0, goerli_token1, int(2.295e18))

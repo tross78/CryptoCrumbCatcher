@@ -35,7 +35,7 @@ class TokenAnalysis:
             )
         )
         try:
-            print("starting is_token_price_increase start_amount")
+            logger.info("starting is_token_price_increase start_amount")
             start_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
                 trade_amount,
@@ -44,7 +44,7 @@ class TokenAnalysis:
 
             await asyncio.sleep(self.data_manager.config["monitor_timeframe"] * 60)
 
-            print("starting is_token_price_increase end_amount")
+            logger.info("starting is_token_price_increase end_amount")
             end_amount = await self.protocol_manager.get_min_token_for_native(
                 token_address,
                 trade_amount,
@@ -62,7 +62,7 @@ class TokenAnalysis:
                 Decimal(str(start_amount)) / Decimal(str(price_increase_threshold))
             )
 
-            print(
+            logger.info(
                 f"Token start amount: {start_amount} \
                 Token end amount: {end_amount} \
                     Threshold amount: {threshold_amount}"
@@ -75,7 +75,6 @@ class TokenAnalysis:
 
         except Exception as e:
             logger.error(f"Error in is_token_price_increase: {e}")
-            print(f"Error in is_token_price_increase: {e}")
             return False, 0
 
     async def has_exploits(self, token_address):
@@ -84,7 +83,9 @@ class TokenAnalysis:
             token_score = await self.tokensniffer_scraper.check_token_score(
                 Web3.to_checksum_address(token_address)
             )
-            logger.info(f"Token {token_address} exploit check")
+            logger.info(
+                f"Token {token_address} exploit check: tokensniffer score {token_score}"
+            )
             if token_score >= self.data_manager.config["token_rating_threshold"]:
                 return False
             else:

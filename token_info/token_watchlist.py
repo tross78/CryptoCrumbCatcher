@@ -45,13 +45,13 @@ class TokenWatchlist:
             if result:
                 try:
                     if not self.is_duplicate(token_address, pool_address):
-                        (price_has_increased, token_base_value) = result
-                        print(
-                            f"price_has_increased: {price_has_increased} token_base_value: {token_base_value}"
+                        (price_has_increased, token_current_value) = result
+                        logger.info(
+                            f"price_has_increased: {price_has_increased} token_current_value: {token_current_value}"
                         )
                         if price_has_increased:
                             await self.add(
-                                token_address, fee, pool_address, token_base_value
+                                token_address, fee, pool_address, token_current_value
                             )
                 except Exception as error_message:
                     logger.error(
@@ -60,6 +60,7 @@ class TokenWatchlist:
                     continue
 
     async def add(self, token_address, fee, pool_address, token_base_value):
+        logger.info(f"Adding token {token_address} with base value {token_base_value}")
         current_chain_name = self.blockchain_manager.get_current_chain().name
         if len(self.tokens.get(current_chain_name, {})) < self.max_tokens:
             current_chain_name = self.blockchain_manager.get_current_chain().name

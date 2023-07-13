@@ -1,3 +1,4 @@
+import curses
 from decimal import Decimal
 from os.path import dirname, join
 
@@ -41,6 +42,7 @@ class BotController:
             self.demo_mode,
             reset_userdata_on_load,
         )
+
         self.token_monitor = TokenMonitor(
             self.blockchain_manager.get_current_chain().name,
             self.wallet_manager,

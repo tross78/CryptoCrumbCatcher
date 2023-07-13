@@ -32,7 +32,7 @@ class TokenStatusManager:
         logger.info(f"Cleared tasks.")
 
         # Iterates over new_tokens, which is expected to be a list of dictionaries with keys 'token', 'pool_address', and 'fee'
-        for token_info in new_tokens:
+        for token_index, token_info in enumerate(new_tokens):
             try:  # Try to create a task for this token
                 token_address = token_info["token"]
                 pool_address = token_info["pool_address"]
@@ -47,23 +47,34 @@ class TokenStatusManager:
                     logger.info(f"Token already monitored: {token_pool_id}")
                     continue
 
+                logger.info(
+                    f"Checking tokensniffer score of token {token_address}. {token_index} of {len(new_tokens)}"
+                )
                 # Checks if the token has any exploits, and if the token is not already being monitored
                 token_passes_muster = not await self.token_analysis.has_exploits(
                     token_address
                 )
                 token_has_no_task = token_pool_id not in self.tokens_with_tasks
 
+                if (
+                    token_address.lower()
+                    == "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a".lower()
+                ):
+                    abc = "123"
+
                 # If the token has no exploits and is not being monitored, it creates a task to check if the token's price is increasing
                 if token_passes_muster and token_has_no_task:
+                    logger.info(f"Creating async task for token {token_address}")
+                    task = None
                     async with self.semaphore:
-                        logger.info(f"Creating async task for token {token_address}")
                         task = asyncio.create_task(
                             self.token_analysis.is_token_price_increase(
                                 token_address, fee, pool_address
                             )
                         )
 
-                        # Appends the task and token data to self.tasks and adds the token_pool_id to self.tokens_with_tasks
+                    # Appends the task and token data to self.tasks and adds the token_pool_id to self.tokens_with_tasks
+                    if task:
                         self.tasks.append((task, token_address, fee, pool_address))
                         self.tokens_with_tasks.add(token_pool_id)
 

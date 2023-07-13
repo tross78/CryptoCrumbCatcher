@@ -104,8 +104,10 @@ class ProtocolManager:
 
     def is_stablecoin(self, token_address: str) -> bool:
         current_chain = self.blockchain_manager.get_current_chain().name
-        stablecoin_tokens = self.stablecoin_tokens.setdefault(current_chain, {})
-        return token_address.lower() in stablecoin_tokens
+        self.stablecoin_tokens.setdefault(current_chain, {})
+        return token_address.lower() in (
+            address.lower() for address in self.stablecoin_tokens[current_chain].keys()
+        )
 
     async def get_tokens(
         self,
@@ -183,10 +185,10 @@ class ProtocolManager:
                 f"Native token (WETH) amount for given token amount: {native_token_amount}"
             )
             return native_token_amount
-        except ValueError as error_message:
-            logger.error(
-                f"Error during price estimation: {error_message}", exc_info=False
-            )
+        except Exception as error:
+            # logger.error(
+            #     f"Error during price estimation: {error_message}", exc_info=False
+            # )
             return -1
 
     # Returns the minimum amount of token token_address required to
@@ -216,10 +218,18 @@ class ProtocolManager:
             )
             return native_token_amount
         except Exception as error:
-            logger.error(f"Error during price estimation: {error}", exc_info=False)
-            # Handle the error or invalid price estimation
-            logger.info("Invalid token price estimation. Cannot proceed further.")
+            # logger.error(f"Error during price estimation: {error}", exc_info=False)
+            # # Handle the error or invalid price estimation
+            # logger.info("Invalid token price estimation. Cannot proceed further.")
             return -1
+
+    def get_pool_instance(self, token_0, token_1, fee):
+        token_0 = self.blockchain_manager.web3_instance.to_checksum_address(token_0)
+        token_1 = self.blockchain_manager.web3_instance.to_checksum_address(token_1)
+        try:
+            return self.dex_client_wrapper.get_pool_instance(token_0, token_1, fee)
+        except Exception as error:
+            return None
 
     def make_trade(self, token_address, native_token_address, trade_amount, fee):
         token_address = self.blockchain_manager.web3_instance.to_checksum_address(

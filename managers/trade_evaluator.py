@@ -1,7 +1,7 @@
-from logger_config import logger
 from decimal import Decimal
 
 from defi.protocol_manager import ProtocolManager
+from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from managers.data_management import DataManagement
 from managers.wallet_manager import WalletManager
@@ -51,7 +51,8 @@ class TradeEvaluator:
         net_amount, costs = self.calculate_net_amount_and_costs(
             orig_investment, potential_trade.fee, 2
         )
-        desired_profit_percentage = 1 + self.profit_margin
+        buffer = Decimal("0.00001")
+        desired_profit_percentage = 1 + self.profit_margin + buffer
         expected_roi_value = (orig_investment + costs) * desired_profit_percentage
         expected_roi_multiplier = expected_roi_value / orig_investment
 

@@ -1,5 +1,4 @@
 import json
-from logger_config import logger
 import os.path
 import time
 from string import Template
@@ -7,6 +6,7 @@ from typing import List
 
 import requests
 
+from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from models.graph_structures import Fee, Pool, Token
 
@@ -101,7 +101,9 @@ class SubgraphManager:
                 pool_data["token0"]["name"],
             )
             # Creating Pool object and adding to the list
-            pool = Pool(pool_data["id"], token0, token1, fee)
+            pool = Pool(
+                pool_data["id"], token0, token1, fee, pool_data["untrackedVolumeUSD"]
+            )
             pools.append(pool)
         return pools
 
@@ -138,7 +140,13 @@ class SubgraphManager:
             ]
 
             # Creating Pool object and adding to the list
-            pool = Pool(pool_data["id"], tokens[0], tokens[1], fee)
+            pool = Pool(
+                pool_data["id"],
+                tokens[0],
+                tokens[1],
+                fee,
+                pool_data["cumulativeVolumeUSD"],
+            )
             pools.append(pool)
         return pools
 
@@ -152,8 +160,10 @@ class SubgraphManager:
             self.blockchain_manager.get_current_chain().native_token_address.lower()
         )
 
-        if os.path.isfile(f"queries/{subgraph_type}.graphql"):
-            query_template = self.read_graphql_file(f"queries/{subgraph_type}.graphql")
+        if os.path.isfile(f"queries/search/{subgraph_type}.graphql"):
+            query_template = self.read_graphql_file(
+                f"queries/search/{subgraph_type}.graphql"
+            )
         else:
             logger.error(
                 f"No query template defined for subgraph type: {subgraph_type}"
@@ -170,6 +180,32 @@ class SubgraphManager:
             min_liquidity_usd=min_liquidity_usd,
             max_liquidity_usd=max_liquidity_usd,
             min_volume_usd=min_volume_usd,
+        )
+
+        subgraph_response = self._send_query(query)
+
+        parsed_data = self.parse_subgraph_response(subgraph_type, subgraph_response)
+
+        return parsed_data
+
+    def get_pool(self, pool_address):
+        subgraph_type = self.blockchain_manager.get_current_chain().graph_type
+        # query_template = self.get_query_template(subgraph_type)
+
+        if os.path.isfile(f"queries/pool/{subgraph_type}.graphql"):
+            query_template = self.read_graphql_file(
+                f"queries/pool/{subgraph_type}.graphql"
+            )
+        else:
+            logger.error(
+                f"No query template defined for subgraph type: {subgraph_type}"
+            )
+            return []
+
+        query_template = Template(query_template)
+
+        query = query_template.substitute(
+            pool_address=pool_address,
         )
 
         subgraph_response = self._send_query(query)

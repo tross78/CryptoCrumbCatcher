@@ -23,6 +23,7 @@
       name
     }
     feeTier
+    untrackedVolumeUSD
     liquidity
     sqrtPrice
     tick
@@ -50,5 +51,9 @@
       name
     }
     feeTier
+    untrackedVolumeUSD
+    liquidity
+    sqrtPrice
+    tick
   }
 }

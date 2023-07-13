@@ -1,5 +1,7 @@
 import asyncio
 import json
+import os
+import tempfile
 
 import aiofiles
 
@@ -40,11 +42,18 @@ class TokenMonitor:
 
     async def save_monitored_tokens(self):
         async with self.lock:  # Lock the method
-            async with aiofiles.open("data/monitored_tokens.json", "w") as json_file:
-                await json_file.write(json.dumps(self.tokens))
-                logger.info(
-                    "Lock released after attempting to save_to_file on token_monitor"
-                )
+            with tempfile.NamedTemporaryFile("w", dir="data", delete=False) as tmp:
+                tmp.write(json.dumps(self.tokens))
+                tmp.flush()  # Ensure flushing of the write buffer
+                os.fsync(
+                    tmp.fileno()
+                )  # Ensure the changes are written to disk immediately
+                tmp_path = tmp.name
+
+            os.rename(tmp_path, "data/monitored_tokens.json")
+            logger.info(
+                "Lock released after attempting to save_to_file on token_monitor"
+            )
 
     def is_duplicate(self, token_address, pool_address):
         token_pool_id = f"{token_address.lower()}_{pool_address.lower()}"
@@ -84,6 +93,7 @@ class TokenMonitor:
                 "pool_address": potential_trade.pool_address.lower(),
                 "token_base_value": potential_trade.token_base_value,
                 "input_amount": trade_data.input_amount,
+                "current_roi": 1,
             }
             logger.info(
                 f"Token {potential_trade.token_address} added to monitored tokens."
@@ -94,6 +104,15 @@ class TokenMonitor:
             logger.info(
                 f"Token {potential_trade.token_address} is already in monitored tokens."
             )
+
+    async def update_monitored_token(self, potential_trade, dictionary):
+        token_pool_id = (
+            f"{potential_trade.token_address}_{potential_trade.pool_address}"
+        )
+        monitored_tokens = self.get_monitored_tokens()
+        for key, value in dictionary.items():
+            monitored_tokens[token_pool_id][key] = value
+        await self.save_monitored_tokens()
 
     async def remove_monitored_token(self, token_address, pool_address):
         # Remove the object with the matching "token_address" and "pool_address" combination

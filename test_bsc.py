@@ -50,31 +50,32 @@ async def main(use_testnet):
     w3.eth.default_account = w3.eth.account.from_key(wallet_private_key).address
     client = Pancakeswap(w3, wallet_private_key, use_testnet=use_testnet)
 
-    # print(
-    #     client.get_price_output(
-    #         token_in,
-    #         token_out,
-    #         10000000000000,
-    #         10000,
-    #     )
-    # )
-    # print(
-    #     client.get_price_input(
-    #         token_in,
-    #         token_out,
-    #         2350819554397474,
-    #         100,
-    #     )
-    #
-    balance = get_token_balance(w3, token_out, w3.eth.default_account)
     print(
-        client.make_trade(
-            token_out,
+        client.get_price_output(
             token_in,
-            balance,
-            10000,
+            token_out,
+            10000000000000,
+            100,
+        )
+    )
+    print(
+        client.get_price_input(
+            token_in,
+            token_out,
+            2468100478718993,
+            100,
         )
     )
 
+    # balance = get_token_balance(w3, token_out, w3.eth.default_account)
+    # print(
+    #     client.make_trade(
+    #         token_out,
+    #         token_in,
+    #         balance,
+    #         10000,
+    #     )
+    # )
 
-asyncio.run(main(use_testnet=True))
+
+asyncio.run(main(use_testnet=False))

@@ -1,7 +1,7 @@
 import asyncio
 import datetime
 import json
-import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 from logger_config import logger
@@ -11,6 +11,7 @@ class SimulatedDexClientWrapper:
     def __init__(self, client, blockchain_manager):
         self.client = client
         self.lock = asyncio.Lock()  # Add a lock
+        self.executor = ThreadPoolExecutor(max_workers=5)
         self.pump_tokens = []
 
     async def load_data(self):
@@ -32,10 +33,23 @@ class SimulatedDexClientWrapper:
     # Get token amount of token_trade_amount (ETH) given token token_in
     async def get_price_input(self, token_in, token_out, token_trade_amount, fee):
         # Fetch the actual price input using the dex_client
+        loop = asyncio.get_running_loop()
         await self.load_data()
-        result = await self.client.get_price_input(
-            token_in, token_out, token_trade_amount, fee
-        )
+        # result = await self.client.get_price_input(
+        #     token_in, token_out, token_trade_amount, fee
+        # )
+        try:
+            result = await loop.run_in_executor(
+                self.executor,
+                self.client.get_price_input,
+                token_in,
+                token_out,
+                token_trade_amount,
+                fee,
+            )
+        except Exception as e:
+            print(f"Could not get the input price for token {token_in}: {str(e)}")
+            raise  # To trigger retry we need to re-raise the exception
 
         for token in self.pump_tokens:
             if token["token_address"].lower() == token_in.lower():
@@ -65,10 +79,26 @@ class SimulatedDexClientWrapper:
 
     async def get_price_output(self, token_in, token_out, token_trade_amount, fee):
         # Fetch the actual price output using the dex_client
+        # result = await self.client.get_price_output(
+        #     token_in, token_out, token_trade_amount, fee
+        # )
+        loop = asyncio.get_running_loop()
         await self.load_data()
-        result = await self.client.get_price_output(
-            token_in, token_out, token_trade_amount, fee
-        )
+        # result = await self.client.get_price_input(
+        #     token_in, token_out, token_trade_amount, fee
+        # )
+        try:
+            result = await loop.run_in_executor(
+                self.executor,
+                self.client.get_price_output,
+                token_in,
+                token_out,
+                token_trade_amount,
+                fee,
+            )
+        except Exception as e:
+            print(f"Could not get the output price for token {token_in}: {str(e)}")
+            raise  # To trigger retry we need to re-raise the exception
         logger.info(
             f"Simulated get_price_output for token {token_in}: initial token amount for native token: {result} (more means less valuable)"
         )

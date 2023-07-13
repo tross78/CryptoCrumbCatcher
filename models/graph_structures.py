@@ -6,11 +6,14 @@ class Token:
 
 
 class Pool:
-    def __init__(self, id: str, token0: Token, token1: Token, fee: int):
+    def __init__(
+        self, id: str, token0: Token, token1: Token, fee: int, volumeUSD: float
+    ):
         self.id = id
         self.token0 = token0
         self.token1 = token1
         self.fee = fee
+        self.volumeUSD = volumeUSD
 
 
 class Fee:

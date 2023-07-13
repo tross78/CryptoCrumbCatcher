@@ -243,7 +243,9 @@ def get_token_price(
 
 
 async def main():
-    provider_url = "https://serene-few-daylight.bsc.discover.quiknode.pro/8e6bd72b59001bb462213064d69c6a6bc8f428e4/"
+    provider_url = (
+        "https://eth-mainnet.g.alchemy.com/v2/K9oT4wm74HHPBwJVYPuEPihhkhhChUOO"
+    )
     os.environ["PROVIDER"] = provider_url
     w3 = Web3(Web3.HTTPProvider(provider_url))
     # print(
@@ -259,8 +261,8 @@ async def main():
     print(
         get_token_price(
             w3,
-            "0x55d398326f99059ff775485246999027b3197955",
-            "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c",
+            "0x6982508145454ce325ddbe47a25d4ec3d2311933",
+            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
             1000000000000000,
             18,
             100,

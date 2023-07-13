@@ -57,6 +57,23 @@ class WalletManager:
         )
         return balance
 
+    async def update_native_value_total(self, native_value):
+        async with self.lock:  # Lock the method
+            selected_chain = self.blockchain_manager.get_current_chain()
+            current_native_value = self.demo_balances[selected_chain.name].get(
+                "total_native_value", 0
+            )
+            self.demo_balances[selected_chain.name]["total_native_value"] = (
+                current_native_value + native_value
+            )
+            await self.save_demo_balances(self.demo_balances)
+
+    async def set_native_value_total(self, native_value):
+        async with self.lock:  # Lock the method
+            selected_chain = self.blockchain_manager.get_current_chain()
+            self.demo_balances[selected_chain.name]["total_native_value"] = native_value
+            await self.save_demo_balances(self.demo_balances)
+
     async def set_native_token_balance(self, token_amount):
         async with self.lock:  # Lock the method
             selected_chain = self.blockchain_manager.get_current_chain()
@@ -105,6 +122,5 @@ class WalletManager:
             return json.load(json_file)
 
     async def save_demo_balances(self, demo_balances):
-        async with self.lock:  # Lock the method
-            async with aiofiles.open("data/demo_balance.json", "w") as json_file:
-                await json_file.write(json.dumps(demo_balances))
+        async with aiofiles.open("data/demo_balance.json", "w") as json_file:
+            await json_file.write(json.dumps(demo_balances))

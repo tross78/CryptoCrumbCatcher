@@ -1,0 +1,22 @@
+{
+  liquidityPools(
+    first: 1000
+    orderBy: createdTimestamp
+    orderDirection: desc
+    where: { id: "$pool_address" }
+  ) {
+    id
+    fees {
+      id
+      feePercentage
+    }
+    tick
+    totalLiquidity
+    inputTokens {
+      id
+      name
+      symbol
+    }
+    cumulativeVolumeUSD
+  }
+}

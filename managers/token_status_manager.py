@@ -2,6 +2,7 @@ import asyncio
 import json
 
 from logger_config import logger
+from models.defi_structures import Fee, Pool, Token
 from token_info.token_analysis import TokenAnalysis
 from token_info.token_monitor import TokenMonitor
 
@@ -34,11 +35,12 @@ class TokenStatusManager:
         # Iterates over new_tokens, which is expected to be a list of dictionaries with keys 'token', 'pool_address', and 'fee'
         for token_index, token_info in enumerate(new_tokens):
             try:  # Try to create a task for this token
-                token_address = token_info["token"]
-                pool_address = token_info["pool_address"]
-                fee = token_info["fee"]
+                token: Token = token_info["token"]
+                pool: Pool = token_info["pool"]
+                fee: Fee = token_info["fee"]
+
                 # Creates a unique identifier for each token by concatenating token address and pool address
-                token_pool_id = f"{token_address}_{pool_address}"
+                token_pool_id = f"{token.id}_{pool.id}"
 
                 # logger.info(f"Processing token: {token_pool_id}")
 
@@ -48,34 +50,28 @@ class TokenStatusManager:
                     continue
 
                 logger.info(
-                    f"Checking tokensniffer score of token {token_address}. {token_index} of {len(new_tokens)}"
+                    f"Checking tokensniffer score of token {token.id}. {token_index} of {len(new_tokens)}"
                 )
                 # Checks if the token has any exploits, and if the token is not already being monitored
                 token_passes_muster = not await self.token_analysis.has_exploits(
-                    token_address
+                    token.id
                 )
                 token_has_no_task = token_pool_id not in self.tokens_with_tasks
 
-                if (
-                    token_address.lower()
-                    == "0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a".lower()
-                ):
-                    abc = "123"
-
                 # If the token has no exploits and is not being monitored, it creates a task to check if the token's price is increasing
                 if token_passes_muster and token_has_no_task:
-                    logger.info(f"Creating async task for token {token_address}")
+                    logger.info(f"Creating async task for token {token.id}")
                     task = None
                     async with self.semaphore:
                         task = asyncio.create_task(
                             self.token_analysis.is_token_price_increase(
-                                token_address, fee, pool_address
+                                token, fee, pool
                             )
                         )
 
                     # Appends the task and token data to self.tasks and adds the token_pool_id to self.tokens_with_tasks
                     if task:
-                        self.tasks.append((task, token_address, fee, pool_address))
+                        self.tasks.append((task, token, fee, pool))
                         self.tokens_with_tasks.add(token_pool_id)
 
             except Exception as e:

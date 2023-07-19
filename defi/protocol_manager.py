@@ -12,7 +12,7 @@ from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
 from managers.subgraph_manager import SubgraphManager
 from managers.token_blacklist_manager import TokenBlacklistManager
-from models.graph_structures import Pool
+from models.defi_structures import Pool
 from pancakeswap import Pancakeswap
 from simulation.simulated_dex_client_wrapper import SimulatedDexClientWrapper
 
@@ -102,12 +102,19 @@ class ProtocolManager:
         with open("data/stablecoins.json", "r") as json_file:
             return json.load(json_file)
 
-    def is_stablecoin(self, token_address: str) -> bool:
+    def is_stablecoin(self, token_address: str, token_symbol: str) -> bool:
         current_chain = self.blockchain_manager.get_current_chain().name
         self.stablecoin_tokens.setdefault(current_chain, {})
-        return token_address.lower() in (
+        is_stablecoin_address = token_address.lower() in (
             address.lower() for address in self.stablecoin_tokens[current_chain].keys()
         )
+        if token_symbol == "WETH":
+            abc = "123"
+        is_stablecoin_symbol = (
+            token_symbol.lower()
+            == self.blockchain_manager.get_current_chain().native_token_name.lower()
+        )
+        return is_stablecoin_address or is_stablecoin_symbol
 
     async def get_tokens(
         self,
@@ -134,26 +141,26 @@ class ProtocolManager:
 
             new_token_addresses = []
             for pool in pools_with_native_token:
-                pool_address = pool.id
-                token_address = pool.token0.id
-                fee = pool.fee.basis_points
+                token = pool.token0
+                fee = pool.fee
+                # fee = pool.fee.basis_points
 
-                if token_address.lower() == native_token_address.lower():
-                    token_address = pool.token1.id
+                if token.id.lower() == native_token_address.lower():
+                    token = pool.token1
                 if (
-                    (token_address != native_token_address)
-                    and (not self.is_stablecoin(token_address))
-                    and (pool_address != "0x0000000000000000000000000000000000000000")
+                    (token.id != native_token_address)
+                    and (not self.is_stablecoin(token.id, token.symbol))
+                    and (pool.id != "0x0000000000000000000000000000000000000000")
                     and not (
                         await self.token_blacklist_manager.is_token_blacklisted(
-                            token_address
+                            token.id
                         )
                     )
                 ):
                     new_token_addresses.append(
                         {
-                            "token": token_address,
-                            "pool_address": pool_address,
+                            "token": token,
+                            "pool": pool,
                             "fee": fee,
                         }
                     )
@@ -228,6 +235,13 @@ class ProtocolManager:
         token_1 = self.blockchain_manager.web3_instance.to_checksum_address(token_1)
         try:
             return self.dex_client_wrapper.get_pool_instance(token_0, token_1, fee)
+        except Exception as error:
+            return None
+
+    async def get_pool_data(self, pool_address):
+        try:
+            pools = await self.subgraph_manager.get_pools(pool_address)
+            return pools[0]
         except Exception as error:
             return None
 

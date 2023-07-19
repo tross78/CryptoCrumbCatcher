@@ -8,7 +8,7 @@ import requests
 
 from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
-from models.graph_structures import Fee, Pool, Token
+from models.defi_structures import Fee, Pool, Token
 
 
 class SubgraphManager:
@@ -17,6 +17,21 @@ class SubgraphManager:
 
     def __init__(self, blockchain_manager: BlockchainManager):
         self.blockchain_manager = blockchain_manager
+        self.syntax_dict = {
+            "messari": {
+                "past_time": "createdTimestamp_gt",
+                "min_liquidity": "totalValueLockedUSD_gt",
+                "max_liquidity": "totalValueLockedUSD_lt",
+                "min_volume": "cumulativeVolumeUSD_gt",
+            },
+            "uniswap_v3": {
+                "past_time": "createdAtTimestamp_gte",
+                "min_liquidity": "totalValueLockedUSD_gt",
+                "max_liquidity": "totalValueLockedUSD_lt",
+                "min_volume": "volumeUSD_gt",
+            },
+            # Add more subgraph types as necessary...
+        }
         self.subgraph_parsers = {
             "messari": self.parse_messari,
             "uniswap_v3_eth": self.parse_uniswap_v3,
@@ -83,7 +98,12 @@ class SubgraphManager:
         # Parsing logic for Uniswap V3 subgraph
 
         # Merge poolsWithToken0 and poolsWithToken1
-        pools_data = response_data["poolsWithToken0"] + response_data["poolsWithToken1"]
+        if "poolsWithToken0" in response_data and "poolsWithToken1" in response_data:
+            pools_data = (
+                response_data["poolsWithToken0"] + response_data["poolsWithToken1"]
+            )
+        if "pools" in response_data:
+            pools_data = response_data["pools"]
 
         pools: List[Pool] = []  # Empty list to hold Pool objects
 
@@ -106,6 +126,22 @@ class SubgraphManager:
             )
             pools.append(pool)
         return pools
+
+    def filter_pools(self, pools, token_addresses):
+        filtered_pools = []
+        native_token_address = (
+            self.blockchain_manager.get_current_chain().native_token_address.lower()
+        )
+        for pool in pools:
+            if (
+                pool.token0.id == native_token_address
+                and pool.token1.id in token_addresses
+            ) or (
+                pool.token1.id == native_token_address
+                and pool.token0.id in token_addresses
+            ):
+                filtered_pools.append(pool)
+        return filtered_pools
 
     def to_dict(self, obj):
         if isinstance(obj, list):
@@ -151,10 +187,19 @@ class SubgraphManager:
         return pools
 
     def get_pools_with_native_token(
-        self, past_time, min_liquidity_usd, max_liquidity_usd, min_volume_usd
+        self,
+        past_time=None,
+        min_liquidity_usd=None,
+        max_liquidity_usd=None,
+        min_volume_usd=None,
     ):
         subgraph_type = self.blockchain_manager.get_current_chain().graph_type
-        # query_template = self.get_query_template(subgraph_type)
+        syntax = self.syntax_dict.get(subgraph_type)
+
+        # If there is no syntax for the current subgraph type, log an error and return early.
+        if syntax is None:
+            logger.error(f"No syntax defined for subgraph type: {subgraph_type}")
+            return []
 
         native_token_address = (
             self.blockchain_manager.get_current_chain().native_token_address.lower()
@@ -170,17 +215,39 @@ class SubgraphManager:
             )
             return []
 
+        if past_time is not None:
+            query_template = query_template.replace(
+                "#PAST_TIME_FILTER#", f'{syntax["past_time"]}: "{past_time}"'
+            )
+        else:
+            query_template = query_template.replace("#PAST_TIME_FILTER#", "")
+
+        if min_liquidity_usd is not None:
+            query_template = query_template.replace(
+                "#MIN_LIQUIDITY_FILTER#",
+                f'{syntax["min_liquidity"]}: {min_liquidity_usd}',
+            )
+        else:
+            query_template = query_template.replace("#MIN_LIQUIDITY_FILTER#", "")
+
+        if max_liquidity_usd is not None:
+            query_template = query_template.replace(
+                "#MAX_LIQUIDITY_FILTER#",
+                f'{syntax["max_liquidity"]}: {max_liquidity_usd}',
+            )
+        else:
+            query_template = query_template.replace("#MAX_LIQUIDITY_FILTER#", "")
+
+        if min_volume_usd is not None:
+            query_template = query_template.replace(
+                "#MIN_VOLUME_FILTER#", f'{syntax["min_volume"]}: {min_volume_usd}'
+            )
+        else:
+            query_template = query_template.replace("#MIN_VOLUME_FILTER#", "")
+
         query_template = Template(query_template)
 
-        query = query_template.substitute(
-            native_token_address=native_token_address,
-            token0_address=native_token_address,
-            token1_address=native_token_address,
-            past_time=past_time,
-            min_liquidity_usd=min_liquidity_usd,
-            max_liquidity_usd=max_liquidity_usd,
-            min_volume_usd=min_volume_usd,
-        )
+        query = query_template.substitute(native_token_address=native_token_address)
 
         subgraph_response = self._send_query(query)
 
@@ -188,7 +255,7 @@ class SubgraphManager:
 
         return parsed_data
 
-    def get_pool(self, pool_address):
+    async def get_pools(self, pool_address):
         subgraph_type = self.blockchain_manager.get_current_chain().graph_type
         # query_template = self.get_query_template(subgraph_type)
 
@@ -213,3 +280,15 @@ class SubgraphManager:
         parsed_data = self.parse_subgraph_response(subgraph_type, subgraph_response)
 
         return parsed_data
+
+    def get_pools_with_tokens(
+        self,
+        past_time,
+        min_liquidity_usd,
+        max_liquidity_usd,
+        min_volume_usd,
+        tokens: List[Token],
+    ):
+        pools = self.get_pools_with_native_token(
+            past_time, min_liquidity_usd, max_liquidity_usd, min_volume_usd
+        )

@@ -18,6 +18,7 @@ class TradeData:
 @dataclass
 class PotentialTrade:
     token_address: str
+    token_name: str
     pool_address: str
     fee: int
     token_base_value: int

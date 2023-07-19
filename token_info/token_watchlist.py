@@ -8,6 +8,7 @@ import aiofiles
 
 from logger_config import logger
 from managers.blockchain_manager import BlockchainManager
+from models.defi_structures import Fee, Pool, Token
 
 
 class TokenWatchlist:
@@ -33,7 +34,11 @@ class TokenWatchlist:
         )
 
         for task_info in tasks_with_infos:
-            task, token_address, fee, pool_address = task_info
+            task, token, fee, pool = task_info
+            task: asyncio.Task
+            token: Token
+            fee: Fee
+            pool: Pool
             try:
                 result = task.result()  # Get the result from the already completed task
             except Exception as error_message:
@@ -44,44 +49,42 @@ class TokenWatchlist:
 
             if result:
                 try:
-                    if not self.is_duplicate(token_address, pool_address):
+                    if not self.is_duplicate(token.id, pool.id):
                         (price_has_increased, token_current_value) = result
                         logger.info(
                             f"price_has_increased: {price_has_increased} token_current_value: {token_current_value}"
                         )
                         if price_has_increased:
-                            await self.add(
-                                token_address, fee, pool_address, token_current_value
-                            )
+                            await self.add(token, fee, pool, token_current_value)
                 except Exception as error_message:
                     logger.error(
                         f"Error while processing task result: {error_message}. Task info: {task_info}"
                     )
                     continue
 
-    async def add(self, token_address, fee, pool_address, token_base_value):
-        logger.info(f"Adding token {token_address} with base value {token_base_value}")
+    async def add(self, token: Token, fee: Fee, pool: Pool, token_base_value):
+        logger.info(f"Adding token {token.id} with base value {token_base_value}")
         current_chain_name = self.blockchain_manager.get_current_chain().name
         if len(self.tokens.get(current_chain_name, {})) < self.max_tokens:
             current_chain_name = self.blockchain_manager.get_current_chain().name
 
             if (
-                not self.is_duplicate(token_address, pool_address)
+                not self.is_duplicate(token.id, pool.id)
                 and len(self.tokens.get(current_chain_name, {})) < self.max_tokens
                 and token_base_value > 0  # weeds out errored price calls
             ):
-                token_pool_id = f"{token_address.lower()}_{pool_address.lower()}"
+                token_pool_id = f"{token.id.lower()}_{pool.id.lower()}"
                 if current_chain_name not in self.tokens:
                     self.tokens[current_chain_name] = {}
                     # add token dict
                 self.tokens[current_chain_name][token_pool_id] = {
-                    "token_address": token_address.lower(),
-                    "fee": fee,
-                    "pool_address": pool_address.lower(),
+                    "token": token.to_json(),
+                    "fee": fee.to_json(),
+                    "pool": pool.to_json(),
                     "token_base_value": token_base_value,
                 }
 
-                logger.info(f"Token {token_address} added to watchlist.")
+                logger.info(f"Token {token.id} added to watchlist.")
                 await self.save_to_file()
 
     async def remove(self, token_address, pool_address):
@@ -114,7 +117,7 @@ class TokenWatchlist:
         current_chain_name = self.blockchain_manager.get_current_chain().name
 
         for token_data in self.tokens.get(current_chain_name, {}).values():
-            if token_data["token_address"] == token_address:
+            if token_data["token"]["id"] == token_address:
                 return True
 
         return False

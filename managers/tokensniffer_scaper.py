@@ -94,6 +94,10 @@ class TokensnifferScraper:
         short_name = selected_chain.short_name
 
         options = uc.ChromeOptions()
+        # options.add_argument(
+        #     "user-data-dir=/Users/tysonross/Library/Application Support/Google/Chrome/"
+        # )
+        # options.add_argument("--profile-directory=Guest Profile")
         # options.add_argument("--headless")
         # options.add_argument("--no-sandbox")
         # options.add_argument("--disable-dev-shm-usage")
@@ -101,13 +105,12 @@ class TokensnifferScraper:
         driver = uc.Chrome(options=options)
         url = f"https://tokensniffer.com/token/{short_name}/{token_address}"
         driver.get(url)
-
         # Wait for the page to load (adjust the delay if needed)
         time.sleep(30)
 
         if self.is_cloudflare_challenge(driver):
             logger.info("Cloudflare challenge encountered. Completing the challenge...")
-            complete_challenge = self.complete_cloudflare_challenge(driver)
+            complete_challenge = self.complete_cloudflare_challenge(driver, url)
             if complete_challenge:
                 logger.info("cloudflare challenge completed")
             # Wait for the page to reload after completing
@@ -137,7 +140,10 @@ class TokensnifferScraper:
 
         return bool(iframe_elements and checkbox_elements)
 
-    def complete_cloudflare_challenge(self, driver):
+    def complete_cloudflare_challenge(self, driver, url):
+        driver.switch_to.new_window()
+        driver.get(url)
+        time.sleep(10)
         iframe = driver.find_element(
             By.CSS_SELECTOR, "iframe[src^='https://challenges.cloudflare.com']"
         )
@@ -210,4 +216,4 @@ class TokensnifferScraper:
             token_score = await self.scrape_tokensniffer_score(token_address)
             return token_score
 
-        return 0
+        return 100

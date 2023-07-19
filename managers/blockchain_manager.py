@@ -68,6 +68,7 @@ class BlockchainManager:
                 chain_data["subgraph_url"],
                 chain_data["subgraph_type"],
                 chain_data["factory_address"],
+                chain_data["native_token_name"],
                 chain_data["native_token_address"],
                 chain_data["supported_dex"],
             )

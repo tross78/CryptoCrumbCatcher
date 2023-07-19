@@ -61,6 +61,7 @@ class SellHandler:
 
         potential_trade = PotentialTrade(
             token_data["token_address"],
+            token_data["token_name"],
             token_data["pool_address"],
             token_data["fee"],
             token_data["token_base_value"],
@@ -132,7 +133,7 @@ class SellHandler:
         )
 
         has_reached_roi_or_decreased = (
-            current_roi_multiplier > expected_roi_multiplier
+            current_roi_multiplier >= expected_roi_multiplier
         ) or (
             current_roi_multiplier
             < self.token_analysis.data_manager.config["price_decrease_threshold"]

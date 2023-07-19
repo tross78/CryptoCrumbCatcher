@@ -89,6 +89,7 @@ class TokenMonitor:
             )
             monitored_tokens[token_pool_id] = {
                 "token_address": potential_trade.token_address.lower(),
+                "token_name": potential_trade.token_name.lower(),
                 "fee": potential_trade.fee,
                 "pool_address": potential_trade.pool_address.lower(),
                 "token_base_value": potential_trade.token_base_value,

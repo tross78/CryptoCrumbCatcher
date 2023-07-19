@@ -27,21 +27,22 @@ class BuyHandler:
         watchlist_copy = list(watchlist)
         # Create tasks for all tokens
         tasks = [
-            self.process_increasing_token(token, trade_amount, watchlist)
-            for token in watchlist_copy
+            self.process_increasing_token(token_data, trade_amount, watchlist)
+            for token_data in watchlist_copy
         ]
 
         # Run all tasks concurrently
         await asyncio.gather(*tasks)
 
     async def process_increasing_token(
-        self, token, native_token_trade_amount, watchlist
+        self, token_data, native_token_trade_amount, watchlist
     ):
         potential_trade = PotentialTrade(
-            token["token_address"],
-            token["pool_address"],
-            token["fee"],
-            token["token_base_value"],
+            token_data["token"]["id"],
+            token_data["token"]["name"],
+            token_data["pool"]["id"],
+            token_data["fee"]["basis_points"],
+            token_data["token_base_value"],
         )
         logger.info(
             "buy_increasing_tokens_from_watchlist: checking duplicate monitored token"
@@ -63,7 +64,7 @@ class BuyHandler:
                 potential_trade, native_token_trade_amount
             )
             logger.info(
-                f"watchlist token {token} has decreased 10%, removing from watchlist"
+                f"watchlist token {potential_trade.token_address} has decreased 10%, removing from watchlist"
             )
             # Remove the token from watchlist if it should no longer be watched
             if not should_continue_watching:
@@ -72,7 +73,7 @@ class BuyHandler:
                 )
         else:
             logger.info(
-                f"buy_increasing_tokens_from_watchlist: watchlist token {token} is already in monitored token list, removing from watchlist"
+                f"buy_increasing_tokens_from_watchlist: watchlist token {potential_trade.token_address} is already in monitored token list, removing from watchlist"
             )
             await watchlist.remove(
                 potential_trade.token_address, potential_trade.pool_address

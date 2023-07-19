@@ -136,7 +136,7 @@ class ProtocolManager:
             pools_with_native_token: List[
                 Pool
             ] = self.subgraph_manager.get_pools_with_native_token(
-                past_time, min_liquidity_usd, max_liquidity_usd, min_volume_usd
+                None, min_liquidity_usd, max_liquidity_usd, min_volume_usd
             )
 
             new_token_addresses = []
